@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { getAccessToken } from "../login/authService.js";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -20,8 +21,20 @@ const MeetingDetail = ({ meetingId, onClose }) => {
 
   const fetchMeetingDetail = async () => {
     try {
+      const token = getAccessToken();
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = token;
+      }
+
       const response = await fetch(
-        `${API_BASE_URL}/recruitment-posts/${meetingId}`
+        `${API_BASE_URL}/recruitment-posts/${meetingId}`,
+        {
+          headers: headers,
+        }
       );
       const data = await response.json();
       if (data.statusCode === 201 && data.result) {
@@ -41,8 +54,20 @@ const MeetingDetail = ({ meetingId, onClose }) => {
 
     setLoadingComments(true);
     try {
+      const token = getAccessToken();
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = token;
+      }
+
       const response = await fetch(
-        `${API_BASE_URL}/recruitment-posts/${meetingId}/comments?page=${commentsPage}&size=10`
+        `${API_BASE_URL}/recruitment-posts/${meetingId}/comments?page=${commentsPage}&size=10`,
+        {
+          headers: headers,
+        }
       );
       const data = await response.json();
 
@@ -68,13 +93,19 @@ const MeetingDetail = ({ meetingId, onClose }) => {
 
   const checkParticipationStatus = async () => {
     try {
+      const token = getAccessToken();
+      if (!token) {
+        // 로그인이 되어있지 않으면 참여 상태 확인 불가
+        return;
+      }
+
       // 이 API는 예시 명세에는 없지만, 참여 상태를 확인하는 API가 있다고 가정합니다.
       // 실제 구현 시에는 백엔드 API에 맞게 조정해야 합니다.
       const response = await fetch(
         `${API_BASE_URL}/recruitment-posts/${meetingId}/participants/status`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+            Authorization: token,
           },
         }
       );
@@ -91,13 +122,19 @@ const MeetingDetail = ({ meetingId, onClose }) => {
   const handleCommentSubmit = async () => {
     if (comment.trim() !== "") {
       try {
+        const token = getAccessToken();
+        if (!token) {
+          alert("로그인이 필요합니다.");
+          return;
+        }
+
         const response = await fetch(
           `${API_BASE_URL}/recruitment-posts/${meetingId}/comments`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+              Authorization: token,
             },
             body: JSON.stringify({
               content: comment,
@@ -126,6 +163,12 @@ const MeetingDetail = ({ meetingId, onClose }) => {
 
   const handleAttendance = async () => {
     try {
+      const token = getAccessToken();
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
       let response;
       if (!isAttending) {
         // 모임 참가 신청
@@ -135,7 +178,7 @@ const MeetingDetail = ({ meetingId, onClose }) => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+              Authorization: token,
             },
           }
         );
@@ -146,7 +189,7 @@ const MeetingDetail = ({ meetingId, onClose }) => {
           {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+              Authorization: token,
             },
           }
         );

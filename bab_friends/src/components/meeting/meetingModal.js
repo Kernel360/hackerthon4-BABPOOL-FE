@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getAccessToken } from "../login/authService.js";
 
 export const CreateMeetingModal = ({
   onClose,
@@ -32,11 +33,18 @@ export const CreateMeetingModal = ({
     setError(null);
 
     try {
+      const token = getAccessToken();
+      if (!token) {
+        setError("로그인이 필요합니다.");
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`${apiBaseUrl}/recruitment-posts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+          Authorization: token,
         },
         body: JSON.stringify(formData),
       });

@@ -8,6 +8,7 @@ import  SetPassword  from "./components/login/SetPassword.js";
 
 import { ReviewPage } from "./components/review/ReviewPage.js";
 import { CreateReviewModal } from "./components/review/CreateReviewModal.js";
+import { getAccessToken } from "./components/login/authService.js";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -28,19 +29,36 @@ const App = () => {
 
   useEffect(() => {
     if (currentPage === "meetings") {
-      fetchMeetings();
+      // 페이지 변경 시 상태 초기화
+      setMeetings([]);
+      setPage(0);
+      setHasMore(true);
+      fetchMeetings(0, true);
     }
   }, [currentPage]);
 
-  const fetchMeetings = async () => {
-    if (loading || !hasMore) return;
+  const fetchMeetings = async (pageToFetch = page, isReset = false) => {
+    if (loading || (!hasMore && !isReset)) return;
 
     setLoading(true);
     try {
+      const token = getAccessToken();
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = token;
+      }
+
       const response = await fetch(
-        `${API_BASE_URL}/recruitment-posts?page=${page}&size=10`
+        `${API_BASE_URL}/recruitment-posts?page=${pageToFetch}&size=10`,
+        {
+          headers: headers,
+        }
       );
       const data = await response.json();
+      console.log(data);
 
       if (data.result && data.result.length > 0) {
         // 받아온 데이터를 프론트엔드 형식에 맞게 변환
@@ -56,8 +74,11 @@ const App = () => {
           participants: [], // 참여자 목록은 상세 조회에서 가져올 예정
         }));
 
-        setMeetings((prev) => [...prev, ...formattedMeetings]);
-        setPage((prevPage) => prevPage + 1);
+        // 기존 데이터에 추가 또는 리셋
+        setMeetings((prev) =>
+          isReset ? formattedMeetings : [...prev, ...formattedMeetings]
+        );
+        setPage((prevPage) => pageToFetch + 1);
       } else {
         setHasMore(false);
       }
@@ -124,7 +145,7 @@ const App = () => {
           <MeetingList
             meetings={meetings}
             onMeetingSelect={handleMeetingSelect}
-            onLoadMore={fetchMeetings}
+            onLoadMore={() => fetchMeetings()}
             hasMore={hasMore}
             loading={loading}
           />
