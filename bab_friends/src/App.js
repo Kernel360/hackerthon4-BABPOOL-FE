@@ -7,6 +7,7 @@ import { SettingsPage } from "./components/login/SettingsPage.js";
 
 import { ReviewPage } from "./components/review/ReviewPage.js";
 import { CreateReviewModal } from "./components/review/CreateReviewModal.js";
+import { getAccessToken } from "./components/login/authService.js";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -36,10 +37,23 @@ const App = () => {
 
     setLoading(true);
     try {
+      const token = getAccessToken();
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = token;
+      }
+
       const response = await fetch(
-        `${API_BASE_URL}/recruitment-posts?page=${page}&size=10`
+        `${API_BASE_URL}/recruitment-posts?page=${page}&size=10`,
+        {
+          headers: headers,
+        }
       );
       const data = await response.json();
+      console.log(data);
 
       if (data.result && data.result.length > 0) {
         // 받아온 데이터를 프론트엔드 형식에 맞게 변환
