@@ -28,12 +28,16 @@ const App = () => {
 
   useEffect(() => {
     if (currentPage === "meetings") {
-      fetchMeetings();
+      // 페이지 변경 시 상태 초기화
+      setMeetings([]);
+      setPage(0);
+      setHasMore(true);
+      fetchMeetings(0, true);
     }
   }, [currentPage]);
 
-  const fetchMeetings = async () => {
-    if (loading || !hasMore) return;
+  const fetchMeetings = async (pageToFetch = page, isReset = false) => {
+    if (loading || (!hasMore && !isReset)) return;
 
     setLoading(true);
     try {
@@ -47,7 +51,7 @@ const App = () => {
       }
 
       const response = await fetch(
-        `${API_BASE_URL}/recruitment-posts?page=${page}&size=10`,
+        `${API_BASE_URL}/recruitment-posts?page=${pageToFetch}&size=10`,
         {
           headers: headers,
         }
@@ -69,8 +73,11 @@ const App = () => {
           participants: [], // 참여자 목록은 상세 조회에서 가져올 예정
         }));
 
-        setMeetings((prev) => [...prev, ...formattedMeetings]);
-        setPage((prevPage) => prevPage + 1);
+        // 기존 데이터에 추가 또는 리셋
+        setMeetings((prev) =>
+          isReset ? formattedMeetings : [...prev, ...formattedMeetings]
+        );
+        setPage((prevPage) => pageToFetch + 1);
       } else {
         setHasMore(false);
       }
@@ -137,7 +144,7 @@ const App = () => {
           <MeetingList
             meetings={meetings}
             onMeetingSelect={handleMeetingSelect}
-            onLoadMore={fetchMeetings}
+            onLoadMore={() => fetchMeetings()}
             hasMore={hasMore}
             loading={loading}
           />
