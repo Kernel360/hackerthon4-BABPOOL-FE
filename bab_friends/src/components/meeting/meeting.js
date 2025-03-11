@@ -76,6 +76,7 @@ const MeetingDetail = ({ meetingId, onClose }) => {
           id: comment.commentId,
           text: comment.content,
           user: comment.nickname,
+          isAuthor: comment.isAuthor,
         }));
 
         setComments((prev) => [...prev, ...newComments]);
@@ -292,7 +293,8 @@ const MeetingDetail = ({ meetingId, onClose }) => {
                 <strong>참석인원:</strong> {meeting.currentParticipants} /{" "}
                 {meeting.maxParticipants}
               </p>
-              {meeting.leaderNickname !== "CurrentUser" && (
+              {/* 모임 작성자가 아닐 때만 참가 버튼 표시 */}
+              {!meeting.isAuthor && (
                 <button
                   onClick={handleAttendance}
                   className={isAttending ? "cancel-button" : "attend-button"}
@@ -308,6 +310,9 @@ const MeetingDetail = ({ meetingId, onClose }) => {
               {comments.map((comment) => (
                 <div key={comment.id} className="comment">
                   <strong>{comment.user}:</strong> {comment.text}
+                  {comment.isAuthor && (
+                    <span className="author-badge"> (작성자)</span>
+                  )}
                 </div>
               ))}
               {loadingComments && <p>댓글 로딩 중...</p>}

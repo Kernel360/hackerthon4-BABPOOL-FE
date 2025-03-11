@@ -53,14 +53,13 @@ export const CreateMeetingModal = ({
 
       if (response.ok) {
         // API 응답에서 생성된 모임 ID 가져오기
-        // 실제 구현에서는 API 응답에 따라 조정 필요
         const createdPostId = data.result?.postId || Date.now(); // API 응답에 postId가 없으면 임시 ID 사용
 
         // 프론트엔드에서 사용할 형식으로 데이터 변환
         const newMeeting = {
           id: createdPostId,
           title: formData.title,
-          location: formData.location,
+          location: formData.location || formData.restaurantLink,
           restaurantLink: formData.restaurantLink,
           date: formData.meetingDate,
           time: formData.meetingTime,
@@ -68,6 +67,8 @@ export const CreateMeetingModal = ({
           attendees: 1, // 모임 생성자는 기본적으로 참여
           content: formData.content,
           category: formData.category,
+          isAuthor: true, // 본인이 작성한 모임이므로 isAuthor = true
+          leaderNickname: "CurrentUser", // 실제로는 서버에서 닉네임 정보를 받아와야 함
         };
 
         if (onMeetingCreated) {

@@ -4,7 +4,7 @@ import { MeetingList } from "./components/meeting/meeting.js";
 import { Navigation } from "./components/login/login.js";
 import { CreateMeetingModal } from "./components/meeting/meetingModal.js";
 import { SettingsPage } from "./components/login/SettingsPage.js";
-import  SetPassword  from "./components/login/SetPassword.js";
+import SetPassword from "./components/login/SetPassword.js";
 
 import { ReviewPage } from "./components/review/ReviewPage.js";
 import { CreateReviewModal } from "./components/review/CreateReviewModal.js";
@@ -65,7 +65,7 @@ const App = () => {
         const formattedMeetings = data.result.map((meeting) => ({
           id: meeting.postId,
           title: meeting.title,
-          location: meeting.location,
+          location: meeting.location || meeting.restaurantLink, // location이 null일 경우 restaurantLink 사용
           restaurantLink: meeting.restaurantLink,
           date: meeting.meetingDate,
           time: meeting.meetingTime,
@@ -161,7 +161,7 @@ const App = () => {
       );
     } else if (currentPage === "settings") {
       return <SettingsPage />;
-    }else if (currentPage === "password") {  
+    } else if (currentPage === "password") {
       return <SetPassword />;
     }
     return null;
