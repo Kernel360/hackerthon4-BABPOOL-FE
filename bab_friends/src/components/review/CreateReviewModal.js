@@ -43,7 +43,10 @@ export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
 
       const response = await fetch("http://localhost:8080/api/review", {
         method: "POST",
-        body: formData
+        body: formData,
+        headers: {
+          "Authorization": localStorage.getItem("token")
+        }
       });
 
       if (response.ok) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "./Modal";
 
 export const EditReviewForm = ({ review, onCancel, onSuccess }) => {
@@ -9,6 +9,13 @@ export const EditReviewForm = ({ review, onCancel, onSuccess }) => {
   const [images, setImages] = useState([]);
   const [currentImages, setCurrentImages] = useState(review.images || []);
   const [submitting, setSubmitting] = useState(false);
+
+  const [userId, setuserId] = useState(null)
+  
+    useEffect(() => {
+      let a = localStorage.getItem("userId")
+      setuserId(a)
+    })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,14 +28,15 @@ export const EditReviewForm = ({ review, onCancel, onSuccess }) => {
     setSubmitting(true);
 
     try {
-      console.log(review)
+      let token = localStorage.getItem("token")
       const response = await fetch(`http://localhost:8080/api/review/${review.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json; charset=utf-8",
+          "Authorization": token
         },
         body: JSON.stringify({
-          userId: 1,
+          userId,
           title,
           content,
           category,

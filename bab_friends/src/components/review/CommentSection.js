@@ -8,13 +8,25 @@ export const CommentSection = ({ reviewId }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedCommentText, setEditedCommentText] = useState("");
 
+  const [userId, setuserId] = useState(null)
+
+  useEffect(() => {
+    let a = localStorage.getItem("userId")
+    setuserId(a)
+  })
+
   useEffect(() => {
     const fetchComments = async () => {
       if (!reviewId) return;
       
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8080/api/review/${reviewId}/comment`);
+      let token = localStorage.getItem("token")
+        const response = await fetch(`http://localhost:8080/api/review/${reviewId}/comment`,
+          {headers: {
+            "Authorization": token
+          }}
+        );
         const data = await response.json();
         
         if (response.ok) {
@@ -44,7 +56,7 @@ export const CommentSection = ({ reviewId }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: 1, // 실제 로그인된 사용자 ID로 변경 필요
+          userId, // 실제 로그인된 사용자 ID로 변경 필요
           content: comment,
         }),
       });
@@ -63,7 +75,7 @@ export const CommentSection = ({ reviewId }) => {
       // 서버 연결 실패 시 임시 댓글 추가
       const tempComment = {
         id: Date.now(),
-        userId: 1,
+        userId,
         username: "현재 사용자", // 실제 사용자 이름으로 변경 필요
         content: comment,
         text: comment,
@@ -87,7 +99,7 @@ export const CommentSection = ({ reviewId }) => {
 
   const handleEditSubmit = async (commentId) => {
     if (editedCommentText.trim() === "") return;
-    
+
     try {
       const response = await fetch(`http://localhost:8080/api/review/${reviewId}/comment/${commentId}`, {
         method: "PATCH",
@@ -95,7 +107,7 @@ export const CommentSection = ({ reviewId }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: 1,
+          userId,
           content: editedCommentText,
         }),
       });
@@ -182,8 +194,8 @@ export const CommentSection = ({ reviewId }) => {
                 ) : (
                   <>
                     <div className="comment-content">
-                      <strong>{comment.user || comment.username || comment.author || "사용자"}:</strong>{" "}
-                      {comment.text || comment.content}
+                      <strong>{comment.nickname}:</strong>{" "}
+                      {comment.content}
                     </div>
                     <div className="comment-actions">
                       <button 

@@ -8,8 +8,6 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
   const [isEditing, setIsEditing] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
 
-  const [chatOpen, setChatOpen] = React.useState(false)
-
   if (!review) return null;
 
   const handleEditClick = () => {
@@ -30,8 +28,13 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
 
   const handleConfirmDelete = async () => {
     try {
+      let token = localStorage.getItem("token")
+
       const response = await fetch(`http://localhost:8080/api/review/${review.id}`, {
         method: "DELETE",
+        headers: {
+          "Authorization": token
+        }
       });
 
       if (response.ok) {
@@ -79,15 +82,11 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
     );
   }
 
-  const handleChatOpen = () => {
-    chatOpen ? setChatOpen(false) : setChatOpen(true)
-  }
-
   return (
     <Modal title={review.title} onClose={onClose}>
       <div className="review-content">
         <div className="review-header">
-          <p><strong>작성자:</strong> {review.author}</p>
+          <p><strong>작성자:</strong> {review.nickname}</p>
           <div className="review-actions">
             <button className="edit-button" onClick={handleEditClick}>수정</button>
             <button className="delete-button" onClick={handleDeleteClick}>삭제</button>
@@ -124,10 +123,6 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
           </p>
         )}
       </div>
-
-      <button onClick={handleChatOpen}>CHAT</button>
-      {chatOpen && <ChatPage roomId={review.id}/>}
-      
       <CommentSection reviewId={review.id} />
     </Modal>
   );

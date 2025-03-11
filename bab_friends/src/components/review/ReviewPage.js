@@ -11,7 +11,12 @@ export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
     const fetchReviews = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:8080/api/review");
+        console.log(localStorage.getItem("token"))
+        const response = await fetch("http://localhost:8080/api/review", {
+          headers: {
+            "Authorization": localStorage.getItem("token")
+          }
+        });
         
         if (response.ok) {
           const data = await response.json();

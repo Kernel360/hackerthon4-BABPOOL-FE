@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { getAccessToken } from "../login/authService.js";
+import { ChatPage } from "../chat/ChatPage";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -13,10 +14,19 @@ const MeetingDetail = ({ meetingId, onClose }) => {
   const [hasMoreComments, setHasMoreComments] = useState(true);
   const [loadingComments, setLoadingComments] = useState(false);
 
+  const [userId, setUserId] = React.useState(null)
+  const [chatOpen, setChatOpen] = React.useState(false)
+  const handleChatOpen = () => {
+    chatOpen ? setChatOpen(false) : setChatOpen(true)
+  }
+
   useEffect(() => {
     fetchMeetingDetail();
     fetchComments();
     checkParticipationStatus();
+
+    const item = localStorage.getItem("userId")
+    setUserId(item)
   }, [meetingId]);
 
   const fetchMeetingDetail = async () => {
@@ -304,6 +314,8 @@ const MeetingDetail = ({ meetingId, onClose }) => {
               )}
             </div>
           </div>
+          <button onClick={handleChatOpen}>채팅</button>
+          {chatOpen ? 
           <div className="comments-section">
             <h4>댓글</h4>
             <div className="comments-list">
@@ -336,7 +348,9 @@ const MeetingDetail = ({ meetingId, onClose }) => {
               />
               <button onClick={handleCommentSubmit}>댓글 작성</button>
             </div>
-          </div>
+          </div> :
+              <ChatPage roomId={meetingId} userId={userId}/> 
+            }
         </div>
       </div>
     </div>

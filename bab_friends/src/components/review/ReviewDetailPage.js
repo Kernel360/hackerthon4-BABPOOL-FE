@@ -12,7 +12,11 @@ export const ReviewDetailPage = ({ reviewId, onClose, onReviewUpdate, onReviewDe
       
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8080/api/review/${reviewId}`);
+        const response = await fetch(`http://localhost:8080/api/review/${reviewId}`, {
+          headers: {
+            "Authorization": localStorage.getItem("token")
+          }
+        });
         
         if (response.ok) {
           const data = await response.json();

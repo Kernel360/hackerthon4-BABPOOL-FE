@@ -3,8 +3,7 @@ import { Stomp } from "@stomp/stompjs";
 import { Link, useParams, BrowserRouter } from "react-router-dom";
 import "./ChatPage.css";
 
-export function ChatPage({roomId}) {
-    const userId = 1; // TODO
+export function ChatPage({roomId, userId}) {
   const [messages, setMessages] = useState([]);
   const [nickname, setNickname] = useState("");
   const [newMessage, setNewMessage] = useState("");
@@ -41,9 +40,9 @@ export function ChatPage({roomId}) {
   };
 
   const sendMessage = (e) => {
-    if (stompClient && newMessage && nickname) {
+    if (stompClient && newMessage) {
       const chatMessage = {
-        userId: 1,
+        userId,
         nicnkname: nickname,
         content: newMessage
       };
@@ -57,9 +56,6 @@ export function ChatPage({roomId}) {
     <BrowserRouter>
     <div className="chat-container">
       <div className="chat-header">
-        {/* <Link to="/rooms" className="back-button">
-          뒤로 가기
-        </Link> */}
         <h2>채팅방 #{roomId}</h2>
       </div>
       
@@ -67,7 +63,7 @@ export function ChatPage({roomId}) {
         {messages.map((msg, idx) => (
           <div 
             key={idx} 
-            className={`message ${msg.userId === userId ? 'my-message' : 'other-message'}`}
+            className={`message ${msg.userId == userId ? 'my-message' : 'other-message'}`}
           >
             <span className="message-writer">{msg.nickname}</span>
             <div className="message-content">{msg.content}</div>
@@ -77,15 +73,6 @@ export function ChatPage({roomId}) {
       </div>
       
       <div className="chat-input-area">
-        <div className="username-input">
-          <input
-            type="text"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="닉네임을 입력하세요"
-          />
-        </div>
-        
         <form onSubmit={sendMessage} className="message-form">
           <input
             type="text"
