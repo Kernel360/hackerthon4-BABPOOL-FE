@@ -1,5 +1,11 @@
 const API_BASE_URL = "http://localhost:8080/api";
 
+// authService.js에 추가할 코드
+export const isAuthenticated = () => {
+  const token = getAccessToken();
+  return !!token; // 토큰이 존재하면 true, 아니면 false 반환
+};
+
 // 로그인 후 토큰 저장
 export const storeTokens = (accessToken, refreshToken) => {
   localStorage.setItem("accessToken", `Bearer ${accessToken}`);
@@ -55,7 +61,7 @@ export const logout = async () => {
       await fetch(`${API_BASE_URL}/users/logout`, {
         method: "PATCH",
         headers: {
-          "Authorization": `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       });

@@ -1,6 +1,6 @@
 // src/App.js
 import "./App.css";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import MeetingList from "./components/meeting/MeetingList";
 import { Navigation } from "./components/login/login.js";
 import CreateMeetingModal from "./components/meeting/CreateMeetingModal";
@@ -9,7 +9,10 @@ import SetPassword from "./components/login/SetPassword.js";
 
 import { ReviewPage } from "./components/review/ReviewPage.js";
 import { CreateReviewModal } from "./components/review/CreateReviewModal.js";
-import { getAccessToken } from "./components/login/authService.js";
+import {
+  getAccessToken,
+  isAuthenticated,
+} from "./components/login/authService.js";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -19,6 +22,7 @@ const App = () => {
   const [loading, setLoading] = React.useState(false);
   const [hasMore, setHasMore] = React.useState(true);
   const [page, setPage] = React.useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [currentPage, setCurrentPage] = React.useState("meetings");
   const [isCreateMeetingVisible, setIsCreateMeetingVisible] =
@@ -27,6 +31,18 @@ const App = () => {
     React.useState(false);
   const [selectedMeetingId, setSelectedMeetingId] = React.useState(null);
   const [selectedReviewId, setSelectedReviewId] = React.useState(null);
+
+  // 초기 로딩 시 로그인 상태 확인
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
+
+  // 로그인 상태 확인 함수
+  const checkLoginStatus = () => {
+    const loggedIn = isAuthenticated();
+    setIsLoggedIn(loggedIn);
+    return loggedIn;
+  };
 
   useEffect(() => {
     if (currentPage === "meetings") {
@@ -57,6 +73,19 @@ const App = () => {
       window.removeEventListener("meetingDeleted", handleMeetingDeleted);
     };
   }, [currentPage]);
+
+  // 로그인 상태 변경 이벤트 리스너
+  useEffect(() => {
+    const handleLoginStateChange = () => {
+      checkLoginStatus();
+    };
+
+    window.addEventListener("loginStateChanged", handleLoginStateChange);
+
+    return () => {
+      window.removeEventListener("loginStateChanged", handleLoginStateChange);
+    };
+  }, []);
 
   const fetchMeetings = async (pageToFetch = page, isReset = false) => {
     if (loading || (!hasMore && !isReset)) return;
@@ -144,7 +173,13 @@ const App = () => {
   };
 
   const handleCreateMeetingOpen = () => {
-    setIsCreateMeetingVisible(true);
+    // 로그인 상태 확인 후 모달 열기
+    if (checkLoginStatus()) {
+      setIsCreateMeetingVisible(true);
+    } else {
+      alert("로그인이 필요한 서비스입니다.");
+      setCurrentPage("login"); // 로그인 페이지로 이동
+    }
   };
 
   const handleCreateMeetingClose = () => {
@@ -152,7 +187,13 @@ const App = () => {
   };
 
   const handleCreateReviewOpen = () => {
-    setIsCreateReviewVisible(true);
+    // 로그인 상태 확인 후 모달 열기
+    if (checkLoginStatus()) {
+      setIsCreateReviewVisible(true);
+    } else {
+      alert("로그인이 필요한 서비스입니다.");
+      setCurrentPage("login"); // 로그인 페이지로 이동
+    }
   };
 
   const handleCreateReviewClose = () => {
@@ -160,6 +201,12 @@ const App = () => {
   };
 
   const handleFloatingButtonClick = () => {
+    if (!isLoggedIn) {
+      alert("로그인이 필요한 서비스입니다.");
+      setCurrentPage("login");
+      return;
+    }
+
     if (currentPage === "meetings") {
       handleCreateMeetingOpen();
     } else if (currentPage === "reviews") {
@@ -178,6 +225,7 @@ const App = () => {
             onLoadMore={() => fetchMeetings()}
             hasMore={hasMore}
             loading={loading}
+            isLoggedIn={isLoggedIn}
           />
         </div>
       );
@@ -187,19 +235,49 @@ const App = () => {
           onReviewSelect={handleReviewSelect}
           reviews={reviews}
           setReviews={setReviews}
+          isLoggedIn={isLoggedIn}
         />
       );
     } else if (currentPage === "settings") {
-      return <SettingsPage />;
+      // 설정 페이지는 로그인 필요
+      return isLoggedIn ? (
+        <SettingsPage />
+      ) : (
+        <div className="login-required-message">
+          <h2>로그인이 필요한 서비스입니다.</h2>
+          <button onClick={() => setCurrentPage("login")}>로그인 하기</button>
+        </div>
+      );
     } else if (currentPage === "password") {
-      return <SetPassword />;
+      // 비밀번호 설정 페이지는 로그인 필요
+      return isLoggedIn ? (
+        <SetPassword />
+      ) : (
+        <div className="login-required-message">
+          <h2>로그인이 필요한 서비스입니다.</h2>
+          <button onClick={() => setCurrentPage("login")}>로그인 하기</button>
+        </div>
+      );
+    } else if (currentPage === "login") {
+      // 여기에 로그인 컴포넌트를 렌더링하는 코드 추가
+      // Navigation 컴포넌트에 로그인 기능이 있다면 해당 컴포넌트에 적절한 prop을 전달하여 로그인 화면을 표시
+      return (
+        <div className="login-page">
+          <h1>로그인</h1>
+          {/* 여기에 로그인 폼이나 관련 컴포넌트를 추가 */}
+        </div>
+      );
     }
     return null;
   };
 
   return (
     <div>
-      <Navigation setPage={setCurrentPage} />
+      <Navigation
+        setPage={setCurrentPage}
+        isLoggedIn={isLoggedIn}
+        onLoginStateChange={checkLoginStatus}
+      />
       {renderPage()}
       <button className="floating-button" onClick={handleFloatingButtonClick}>
         +
