@@ -1,25 +1,88 @@
-import logo from './logo.svg';
 import './App.css';
+import React from 'react';
+import {MeetingList} from './components/meeting/meeting.js'
+import {Navigation} from './components/login/login.js'
+import { CreateMeetingModal } from './components/meeting/meetingModal.js';
+import { SettingsPage } from './components/login/SettingsPage.js';
 
-function App() {
+import { ReviewPage } from './components/newReview/ReviewPage.js';
+import { CreateReviewModal } from './components/newReview/CreateReviewModal.js';
+
+const App = () => {
+  const [meetings, setMeetings] = React.useState([]);
+
+  const [currentPage, setCurrentPage] = React.useState('meetings');
+  const [isCreateMeetingVisible, setIsCreateMeetingVisible] = React.useState(false);
+  const [isCreateReviewVisible, setIsCreateReviewVisible] = React.useState(false);
+  const [selectedReviewId, setSelectedReviewId] = React.useState(null)
+
+  const handleReviewSelect = (reviewId) => {
+    setSelectedReviewId(reviewId)
+  }
+
+  const handleReviewDetailClose = () => {
+    setSelectedReviewId(null)
+  }
+
+  const renderPage = () => {
+    if (currentPage === 'meetings') {
+      return (
+        <div>
+          <h1 style={{ textAlign: 'center' }}>밥 친구 모임</h1>
+          <MeetingList meetings={meetings} />
+        </div>
+      );
+    } else if (currentPage === 'reviews') {
+      return <ReviewPage onReviewSelect={handleReviewSelect}/>;
+    } else if (currentPage === 'settings') {
+      return <SettingsPage />;
+    }
+    return null;
+  };
+
+  const handleCreateMeetingOpen = () => {
+    setIsCreateMeetingVisible(true);
+  };
+
+  const handleCreateMeetingClose = () => {
+    setIsCreateMeetingVisible(false);
+  };
+
+  const handleCreateReviewOpen = () => {
+    setIsCreateReviewVisible(true);
+  };
+
+  const handleCreateReviewClose = () => {
+    setIsCreateReviewVisible(false);
+  };
+
+  const handleFloatingButtonClick = () => {
+    if (currentPage === 'meetings') {
+      handleCreateMeetingOpen();
+    } else if (currentPage === 'reviews') {
+      handleCreateReviewOpen();
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Navigation setPage={setCurrentPage} />
+      {renderPage()}
+      <button className="floating-button" onClick={handleFloatingButtonClick}>+</button>
+
+      {isCreateMeetingVisible && (
+        <CreateMeetingModal onClose={handleCreateMeetingClose} setMeetings={setMeetings} meetings={meetings} />
+      )}
+
+      {isCreateReviewVisible && (
+        <CreateReviewModal onClose={handleCreateReviewClose} />
+      )}
+
+      {/* {selectedReviewId && (
+        <ReviewDetailPage reviewId={selectedReviewId} onClose={handleReviewDetailClose} />
+      )} */}
     </div>
   );
-}
+};
 
 export default App;
