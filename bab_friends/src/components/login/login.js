@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
+import { storeTokens, logout } from "./authService";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
 export const Navigation = ({ setPage }) => {
   // 로그인 상태 확인 (localStorage에 토큰이 있는지 확인)
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("accessToken"));
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [loginModalVisible, setLoginModalVisible] = useState(false);
   const [signupModalVisible, setSignupModalVisible] = useState(false);
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("token"));
+    setIsLoggedIn(!!localStorage.getItem("accessToken"));
   }, []);
 
   const handleLoginClick = () => {
@@ -29,42 +30,19 @@ export const Navigation = ({ setPage }) => {
     setDropdownVisible(!dropdownVisible);
   };
 
-  // ✅ 로그아웃: accessToken 삭제 후 자동 새로고침
   const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        console.warn("No token found for logout.");
-      } else {
-        await fetch(`${API_BASE_URL}/users/logout`, {
-          method: "PATCH",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-      }
-    } catch (error) {
-      console.error("로그아웃 에러:", error);
-    } finally {
-      localStorage.removeItem("token"); // accessToken 삭제
-      setIsLoggedIn(false);
-      setDropdownVisible(false);
-      window.location.reload(); // 자동 새로고침
-    }
+    await logout();
+    setIsLoggedIn(false);
+    setDropdownVisible(false);
+    window.location.reload(); // 자동 새로고침
   };
 
   return (
     <nav className="navbar">
       <span className="site-title">밥친구</span>
       <div className="nav-links">
-        <a href="#" onClick={() => setPage("meetings")}>
-          모임 게시판
-        </a>
-        <a href="#" onClick={() => setPage("reviews")}>
-          리뷰 게시판
-        </a>
+        <a href="#" onClick={() => setPage("meetings")}>모임 게시판</a>
+        <a href="#" onClick={() => setPage("reviews")}>리뷰 게시판</a>
       </div>
       {isLoggedIn ? (
         <div className="user-menu">
@@ -76,15 +54,14 @@ export const Navigation = ({ setPage }) => {
           {dropdownVisible && (
             <div className="dropdown-menu">
               <a href="#" onClick={() => setPage("settings")}>설정</a>
+              <a href="#" onClick={() => setPage("settings")}>비밀번호 변경</a>
               <a href="#" onClick={handleLogout}>로그아웃</a>
             </div>
           )}
         </div>
       ) : (
         <>
-          <button className="login-button" onClick={handleLoginClick}>
-            로그인
-          </button>
+          <button className="login-button" onClick={handleLoginClick}>로그인</button>
           {loginModalVisible && (
             <LoginModal
               onClose={handleCloseLoginModal}
@@ -93,7 +70,10 @@ export const Navigation = ({ setPage }) => {
             />
           )}
           {signupModalVisible && (
-            <SignupModal onClose={handleCloseSignupModal} setLoginModalVisible={setLoginModalVisible} />
+            <SignupModal
+              onClose={handleCloseSignupModal}
+              setLoginModalVisible={setLoginModalVisible}
+            />
           )}
         </>
       )}
@@ -101,6 +81,7 @@ export const Navigation = ({ setPage }) => {
   );
 };
 
+// 로그인 모달
 const LoginModal = ({ onClose, setIsLoggedIn, setSignupModalVisible }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -111,19 +92,17 @@ const LoginModal = ({ onClose, setIsLoggedIn, setSignupModalVisible }) => {
     try {
       const response = await fetch(`${API_BASE_URL}/users/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        storeTokens(data.accessToken, data.refreshToken);
         setIsLoggedIn(true);
         onClose();
-        window.location.reload(); // ✅ 로그인 후 새로고침하여 상태 반영
+        window.location.reload(); // 로그인 후 새로고침
       } else {
         alert(data.message || "로그인 실패");
       }
@@ -149,10 +128,7 @@ const LoginModal = ({ onClose, setIsLoggedIn, setSignupModalVisible }) => {
           </div>
           <button type="submit" className="login-button-form">로그인</button>
         </form>
-        <a href="#" className="auth-toggle-link" onClick={() => {
-          setSignupModalVisible(true);
-          onClose();
-        }}>
+        <a href="#" className="auth-toggle-link" onClick={() => { setSignupModalVisible(true); onClose(); }}>
           회원가입
         </a>
       </div>
@@ -160,6 +136,7 @@ const LoginModal = ({ onClose, setIsLoggedIn, setSignupModalVisible }) => {
   );
 };
 
+// 회원가입 모달
 const SignupModal = ({ onClose, setLoginModalVisible }) => {
   const [username, setUsername] = useState("");
   const [nickname, setNickname] = useState("");
@@ -171,9 +148,7 @@ const SignupModal = ({ onClose, setLoginModalVisible }) => {
     try {
       const response = await fetch(`${API_BASE_URL}/users/signup`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, nickname, password }),
       });
 
@@ -182,6 +157,7 @@ const SignupModal = ({ onClose, setLoginModalVisible }) => {
       if (response.ok) {
         alert("회원가입 성공!");
         onClose();
+        setLoginModalVisible(true); // 회원가입 성공 후 로그인 창 열기
       } else {
         alert(data.message || "회원가입 실패");
       }
