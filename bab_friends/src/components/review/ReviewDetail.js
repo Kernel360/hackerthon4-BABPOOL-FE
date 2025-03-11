@@ -2,10 +2,13 @@ import React from "react";
 import { CommentSection } from "./CommentSection";
 import { Modal } from "./Modal";
 import { EditReviewForm } from "./EditReviewForm";
+import { ChatPage } from "../chat/ChatPage";
 
 export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }) => {
   const [isEditing, setIsEditing] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
+
+  const [chatOpen, setChatOpen] = React.useState(false)
 
   if (!review) return null;
 
@@ -76,6 +79,10 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
     );
   }
 
+  const handleChatOpen = () => {
+    chatOpen ? setChatOpen(false) : setChatOpen(true)
+  }
+
   return (
     <Modal title={review.title} onClose={onClose}>
       <div className="review-content">
@@ -117,6 +124,9 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
           </p>
         )}
       </div>
+
+      <button onClick={handleChatOpen}>CHAT</button>
+      {chatOpen && <ChatPage roomId={review.id}/>}
       
       <CommentSection reviewId={review.id} />
     </Modal>
