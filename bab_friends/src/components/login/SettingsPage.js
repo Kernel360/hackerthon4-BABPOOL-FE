@@ -14,7 +14,7 @@ export const SettingsPage = () => {
         const response = await fetch(`${API_BASE_URL}/users/me`, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${token}`,
+            "Authorization": token,
             "Content-Type": "application/json",
           },
         });
@@ -43,7 +43,7 @@ export const SettingsPage = () => {
       const response = await fetch(`${API_BASE_URL}/users/me`, {
         method: "PATCH",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          "Authorization": token,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, nickname }),

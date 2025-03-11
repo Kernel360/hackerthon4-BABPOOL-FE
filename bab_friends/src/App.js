@@ -4,6 +4,7 @@ import { MeetingList } from "./components/meeting/meeting.js";
 import { Navigation } from "./components/login/login.js";
 import { CreateMeetingModal } from "./components/meeting/meetingModal.js";
 import { SettingsPage } from "./components/login/SettingsPage.js";
+import  SetPassword  from "./components/login/SetPassword.js";
 
 import { ReviewPage } from "./components/review/ReviewPage.js";
 import { CreateReviewModal } from "./components/review/CreateReviewModal.js";
@@ -139,6 +140,8 @@ const App = () => {
       );
     } else if (currentPage === "settings") {
       return <SettingsPage />;
+    }else if (currentPage === "password") {  
+      return <SetPassword />;
     }
     return null;
   };

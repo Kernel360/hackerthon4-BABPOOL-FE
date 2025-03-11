@@ -30,11 +30,33 @@ export const Navigation = ({ setPage }) => {
     setDropdownVisible(!dropdownVisible);
   };
 
+  const handlePasswordChange = () => {
+    setPage("passwordChange"); 
+  };
+
   const handleLogout = async () => {
-    await logout();
-    setIsLoggedIn(false);
-    setDropdownVisible(false);
-    window.location.reload(); // 자동 새로고침
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        console.warn("No token found for logout.");
+      } else {
+        await fetch(`${API_BASE_URL}/users/logout`, {
+          method: "PATCH",
+          headers: {
+            "Authorization": token, // Bearer 토큰 포함
+            "Content-Type": "application/json",
+          },
+        });
+      }
+    } catch (error) {
+      console.error("로그아웃 에러:", error);
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      setIsLoggedIn(false);
+      setDropdownVisible(false);
+      window.location.reload();
+    }
   };
 
   return (
@@ -54,7 +76,7 @@ export const Navigation = ({ setPage }) => {
           {dropdownVisible && (
             <div className="dropdown-menu">
               <a href="#" onClick={() => setPage("settings")}>설정</a>
-              <a href="#" onClick={() => setPage("settings")}>비밀번호 변경</a>
+              <a href="#" onClick={() => setPage("password")}>비밀번호 변경</a> 
               <a href="#" onClick={handleLogout}>로그아웃</a>
             </div>
           )}
@@ -157,9 +179,9 @@ const SignupModal = ({ onClose, setLoginModalVisible }) => {
       if (response.ok) {
         alert("회원가입 성공!");
         onClose();
-        setLoginModalVisible(true); // 회원가입 성공 후 로그인 창 열기
+        setLoginModalVisible(true); 
       } else {
-        alert(data.message || "회원가입 실패");
+        alert(data.message || "이미 존재하는 아이디입니다.");
       }
     } catch (error) {
       console.error("회원가입 에러:", error);
