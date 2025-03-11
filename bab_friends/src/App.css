@@ -435,6 +435,8 @@ h1 {
 
 .login-form {
   padding: 20px;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .login-form h2 {
