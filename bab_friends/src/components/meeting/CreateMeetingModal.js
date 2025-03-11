@@ -50,7 +50,7 @@ const CreateMeetingModal = ({ onClose, onMeetingCreated, apiBaseUrl }) => {
 
       if (response.ok) {
         // API 응답에서 생성된 모임 ID 가져오기
-        const createdPostId = data.result?.postId || Date.now(); // API 응답에 postId가 없으면 임시 ID 사용
+        const createdPostId = data.result?.id || Date.now(); // API 응답에 postId가 없으면 임시 ID 사용
 
         // 프론트엔드에서 사용할 형식으로 데이터 변환
         const newMeeting = {

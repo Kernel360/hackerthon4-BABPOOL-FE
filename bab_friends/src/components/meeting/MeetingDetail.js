@@ -352,6 +352,39 @@ const MeetingDetail = ({ meetingId, onClose }) => {
     setIsEditModalVisible(false);
   };
 
+  // formatDateTime 함수를 분리합니다
+  const formatDate = (dateTimeString) => {
+    if (!dateTimeString) return "날짜 정보 없음";
+
+    try {
+      const date = new Date(dateTimeString);
+      return date.toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "날짜 정보 없음";
+    }
+  };
+
+  const formatTime = (dateTimeString) => {
+    if (!dateTimeString) return "시간 정보 없음";
+
+    try {
+      const date = new Date(dateTimeString);
+      return date.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      console.error("Time formatting error:", error);
+      return "시간 정보 없음";
+    }
+  };
+
   if (loading) {
     return (
       <div className="meeting-detail-overlay">
@@ -451,6 +484,12 @@ const MeetingDetail = ({ meetingId, onClose }) => {
           <div className="meeting-description">
             <p>
               <strong>주최자:</strong> {meeting.leaderNickname}
+            </p>
+            <p>
+              <strong>날짜:</strong> {formatDate(meeting.meetingDate)}
+            </p>
+            <p>
+              <strong>시간:</strong> {formatTime(meeting.meetingDate)}
             </p>
             <p>
               <strong>장소:</strong> {meeting.location || "위치 정보 없음"}
