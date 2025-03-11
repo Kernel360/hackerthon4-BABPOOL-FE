@@ -38,6 +38,26 @@ const App = () => {
     }
   }, [currentPage]);
 
+  // Add event listener for meeting deletion
+  useEffect(() => {
+    const handleMeetingDeleted = () => {
+      // 모임 삭제 후 목록 새로고침
+      if (currentPage === "meetings") {
+        setMeetings([]);
+        setPage(0);
+        setHasMore(true);
+        fetchMeetings(0, true);
+        setSelectedMeetingId(null); // Close any open meeting detail
+      }
+    };
+
+    window.addEventListener("meetingDeleted", handleMeetingDeleted);
+
+    return () => {
+      window.removeEventListener("meetingDeleted", handleMeetingDeleted);
+    };
+  }, [currentPage]);
+
   const fetchMeetings = async (pageToFetch = page, isReset = false) => {
     if (loading || (!hasMore && !isReset)) return;
 
@@ -112,6 +132,15 @@ const App = () => {
 
   const handleMeetingCreated = (newMeeting) => {
     setMeetings((prev) => [newMeeting, ...prev]);
+  };
+
+  // Add handler for meeting updated
+  const handleMeetingUpdated = (updatedMeeting) => {
+    setMeetings((prev) =>
+      prev.map((meeting) =>
+        meeting.id === updatedMeeting.id ? updatedMeeting : meeting
+      )
+    );
   };
 
   const handleCreateMeetingOpen = () => {

@@ -1,6 +1,7 @@
 // src/components/meeting/MeetingDetail.js
 import React, { useEffect, useState } from "react";
 import { getAccessToken } from "../login/authService.js";
+import EditMeetingModal from "./EditMeetingModal"; // New import
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -13,6 +14,7 @@ const MeetingDetail = ({ meetingId, onClose }) => {
   const [commentsPage, setCommentsPage] = useState(0);
   const [hasMoreComments, setHasMoreComments] = useState(true);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false); // New state
 
   useEffect(() => {
     fetchMeetingDetail();
@@ -211,6 +213,63 @@ const MeetingDetail = ({ meetingId, onClose }) => {
     }
   };
 
+  // New function for handling delete
+  const handleDelete = async () => {
+    if (!window.confirm("모임을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/recruitment-posts/${meetingId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        alert("모임이 삭제되었습니다.");
+        onClose(); // 모달 닫기
+        // 목록 새로고침을 위해 이벤트 발생 (App.js에서 추가 처리 필요)
+        window.dispatchEvent(new CustomEvent("meetingDeleted"));
+      } else {
+        const data = await response.json();
+        alert(data.message || "모임 삭제에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Meeting deletion error:", error);
+      alert("서버 연결에 실패했습니다.");
+    }
+  };
+
+  // New function to open edit modal
+  const handleOpenEditModal = () => {
+    setIsEditModalVisible(true);
+  };
+
+  // New function to close edit modal
+  const handleCloseEditModal = () => {
+    setIsEditModalVisible(false);
+  };
+
+  // New function to handle meeting update
+  const handleMeetingUpdated = (updatedMeeting) => {
+    setMeeting({
+      ...meeting,
+      ...updatedMeeting,
+    });
+    setIsEditModalVisible(false);
+  };
+
   if (loading) {
     return (
       <div className="meeting-detail-overlay">
@@ -303,6 +362,18 @@ const MeetingDetail = ({ meetingId, onClose }) => {
                   {isAttending ? "참가 취소" : "참가 신청"}
                 </button>
               )}
+
+              {/* 모임 작성자일 때만 수정/삭제 버튼 표시 */}
+              {meeting.isAuthor && (
+                <div className="author-actions">
+                  <button onClick={handleOpenEditModal} className="edit-button">
+                    수정
+                  </button>
+                  <button onClick={handleDelete} className="delete-button">
+                    삭제
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <div className="comments-section">
@@ -340,6 +411,16 @@ const MeetingDetail = ({ meetingId, onClose }) => {
           </div>
         </div>
       </div>
+
+      {/* 수정 모달 */}
+      {isEditModalVisible && (
+        <EditMeetingModal
+          meeting={meeting}
+          onClose={handleCloseEditModal}
+          onMeetingUpdated={handleMeetingUpdated}
+          apiBaseUrl={API_BASE_URL}
+        />
+      )}
     </div>
   );
 };
