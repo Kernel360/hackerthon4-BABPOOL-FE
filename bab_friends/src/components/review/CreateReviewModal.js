@@ -20,36 +20,35 @@ export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
     setSubmitting(true);
 
     try {
+      const formData = new FormData();
+      formData.append(
+        "dto",
+        new Blob(
+          [
+            JSON.stringify({
+              userId: 1,
+              title,
+              content,
+              category,
+              rating,
+            }),
+          ],
+          {type : 'application/json'}
+        )
+      )
+
+      images.forEach((image) => {
+        formData.append("file", image)
+      })
+
       const response = await fetch("http://localhost:8080/api/review", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-        },
-        body: JSON.stringify({
-          userId: 1, // 실제 로그인된 사용자 ID로 변경 필요
-          title,
-          content,
-          category,
-          rating
-        }),
+        body: formData
       });
 
       if (response.ok) {
         const newReview = await response.json();
         alert("리뷰가 성공적으로 작성되었습니다!");
-        
-        // 이미지가 있으면 업로드 (실제 구현은 서버 API에 맞게 조정 필요)
-        if (images.length > 0) {
-          // const formData = new FormData();
-          // images.forEach(image => {
-          //   formData.append("images", image);
-          // });
-          
-          // await fetch(`http://localhost:8080/api/review/${newReview.id}/images`, {
-          //   method: "POST",
-          //   body: formData,
-          // });
-        }
         
         if (onReviewCreated) {
           onReviewCreated(newReview);
