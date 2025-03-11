@@ -1,7 +1,7 @@
 // src/components/meeting/MeetingDetail.js
 import React, { useEffect, useState } from "react";
 import { getAccessToken } from "../login/authService.js";
-import EditMeetingModal from "./EditMeetingModal"; // New import
+import EditMeetingModal from "./EditMeetingModal";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -14,7 +14,11 @@ const MeetingDetail = ({ meetingId, onClose }) => {
   const [commentsPage, setCommentsPage] = useState(0);
   const [hasMoreComments, setHasMoreComments] = useState(true);
   const [loadingComments, setLoadingComments] = useState(false);
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false); // New state
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isCommentEditModalVisible, setIsCommentEditModalVisible] =
+    useState(false);
+  const [editingComment, setEditingComment] = useState(null);
+  const [editedCommentText, setEditedCommentText] = useState("");
 
   useEffect(() => {
     fetchMeetingDetail();
@@ -99,12 +103,9 @@ const MeetingDetail = ({ meetingId, onClose }) => {
     try {
       const token = getAccessToken();
       if (!token) {
-        // 로그인이 되어있지 않으면 참여 상태 확인 불가
         return;
       }
 
-      // 이 API는 예시 명세에는 없지만, 참여 상태를 확인하는 API가 있다고 가정합니다.
-      // 실제 구현 시에는 백엔드 API에 맞게 조정해야 합니다.
       const response = await fetch(
         `${API_BASE_URL}/recruitment-posts/${meetingId}/participants/status`,
         {
@@ -149,7 +150,6 @@ const MeetingDetail = ({ meetingId, onClose }) => {
         const data = await response.json();
 
         if (response.ok) {
-          // 댓글이 성공적으로 작성되면 댓글 목록을 새로고침
           setCommentsPage(0);
           setComments([]);
           setHasMoreComments(true);
@@ -165,6 +165,96 @@ const MeetingDetail = ({ meetingId, onClose }) => {
     }
   };
 
+  // New function to handle comment edit
+  const handleEditComment = (comment) => {
+    setEditingComment(comment);
+    setEditedCommentText(comment.text);
+    setIsCommentEditModalVisible(true);
+  };
+
+  // New function to submit edited comment
+  const handleCommentEditSubmit = async () => {
+    if (editedCommentText.trim() === "") {
+      alert("댓글 내용을 입력해주세요.");
+      return;
+    }
+
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/recruitment-posts/${meetingId}/comments/${editingComment.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+          body: JSON.stringify({
+            content: editedCommentText,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update the comment in the local state
+        setComments(
+          comments.map((c) =>
+            c.id === editingComment.id ? { ...c, text: editedCommentText } : c
+          )
+        );
+        setIsCommentEditModalVisible(false);
+      } else {
+        alert(data.message || "댓글 수정에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Comment edit error:", error);
+      alert("서버 연결에 실패했습니다.");
+    }
+  };
+
+  // New function to delete comment
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("댓글을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/recruitment-posts/${meetingId}/comments/${commentId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Remove the comment from the local state
+        setComments(comments.filter((c) => c.id !== commentId));
+      } else {
+        const data = await response.json();
+        alert(data.message || "댓글 삭제에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Comment deletion error:", error);
+      alert("서버 연결에 실패했습니다.");
+    }
+  };
+
   const handleAttendance = async () => {
     try {
       const token = getAccessToken();
@@ -175,7 +265,6 @@ const MeetingDetail = ({ meetingId, onClose }) => {
 
       let response;
       if (!isAttending) {
-        // 모임 참가 신청
         response = await fetch(
           `${API_BASE_URL}/recruitment-posts/${meetingId}/participants`,
           {
@@ -187,7 +276,6 @@ const MeetingDetail = ({ meetingId, onClose }) => {
           }
         );
       } else {
-        // 모임 참가 취소
         response = await fetch(
           `${API_BASE_URL}/recruitment-posts/${meetingId}/participants`,
           {
@@ -201,7 +289,6 @@ const MeetingDetail = ({ meetingId, onClose }) => {
 
       if (response.ok) {
         setIsAttending(!isAttending);
-        // 미팅 정보 갱신 (참가자 수 변경)
         fetchMeetingDetail();
       } else {
         const data = await response.json();
@@ -213,7 +300,6 @@ const MeetingDetail = ({ meetingId, onClose }) => {
     }
   };
 
-  // New function for handling delete
   const handleDelete = async () => {
     if (!window.confirm("모임을 삭제하시겠습니까?")) {
       return;
@@ -238,8 +324,7 @@ const MeetingDetail = ({ meetingId, onClose }) => {
 
       if (response.ok) {
         alert("모임이 삭제되었습니다.");
-        onClose(); // 모달 닫기
-        // 목록 새로고침을 위해 이벤트 발생 (App.js에서 추가 처리 필요)
+        onClose();
         window.dispatchEvent(new CustomEvent("meetingDeleted"));
       } else {
         const data = await response.json();
@@ -251,17 +336,14 @@ const MeetingDetail = ({ meetingId, onClose }) => {
     }
   };
 
-  // New function to open edit modal
   const handleOpenEditModal = () => {
     setIsEditModalVisible(true);
   };
 
-  // New function to close edit modal
   const handleCloseEditModal = () => {
     setIsEditModalVisible(false);
   };
 
-  // New function to handle meeting update
   const handleMeetingUpdated = (updatedMeeting) => {
     setMeeting({
       ...meeting,
@@ -307,20 +389,63 @@ const MeetingDetail = ({ meetingId, onClose }) => {
       <div className="meeting-detail">
         <div className="meeting-detail-header">
           <h2>{meeting.title}</h2>
-          <button className="close-button" onClick={onClose}>
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
+          <div className="header-actions">
+            {/* 모임 작성자일 때만 수정/삭제 버튼 표시 */}
+            {meeting.isAuthor && (
+              <>
+                <button
+                  onClick={handleOpenEditModal}
+                  className="header-action-button edit-meeting-button"
+                  title="모임 수정"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="header-action-button delete-meeting-button"
+                  title="모임 삭제"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM19 4H15.5L14.5 3H9.5L8.5 4H5V6H19V4Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
+            <button className="close-button" onClick={onClose}>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
         <div className="meeting-detail-body">
           <div className="meeting-description">
@@ -353,7 +478,6 @@ const MeetingDetail = ({ meetingId, onClose }) => {
                 <strong>참석인원:</strong> {meeting.currentParticipants} /{" "}
                 {meeting.maxParticipants}
               </p>
-              {/* 모임 작성자가 아닐 때만 참가 버튼 표시 */}
               {!meeting.isAuthor && (
                 <button
                   onClick={handleAttendance}
@@ -362,18 +486,6 @@ const MeetingDetail = ({ meetingId, onClose }) => {
                   {isAttending ? "참가 취소" : "참가 신청"}
                 </button>
               )}
-
-              {/* 모임 작성자일 때만 수정/삭제 버튼 표시 */}
-              {meeting.isAuthor && (
-                <div className="author-actions">
-                  <button onClick={handleOpenEditModal} className="edit-button">
-                    수정
-                  </button>
-                  <button onClick={handleDelete} className="delete-button">
-                    삭제
-                  </button>
-                </div>
-              )}
             </div>
           </div>
           <div className="comments-section">
@@ -381,10 +493,54 @@ const MeetingDetail = ({ meetingId, onClose }) => {
             <div className="comments-list">
               {comments.map((comment) => (
                 <div key={comment.id} className="comment">
-                  <strong>{comment.user}:</strong> {comment.text}
-                  {comment.isAuthor && (
-                    <span className="author-badge"> (작성자)</span>
-                  )}
+                  <div className="comment-content">
+                    <strong>
+                      {comment.user}
+                      {comment.isAuthor && (
+                        <span className="author-badge"> (작성자)</span>
+                      )}
+                      :
+                    </strong>{" "}
+                    {comment.text}
+                  </div>
+                  <div className="comment-actions">
+                    <button
+                      onClick={() => handleEditComment(comment)}
+                      className="edit-comment-button"
+                      title="수정"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteComment(comment.id)}
+                      className="delete-comment-button"
+                      title="삭제"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM19 4H15.5L14.5 3H9.5L8.5 4H5V6H19V4Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               ))}
               {loadingComments && <p>댓글 로딩 중...</p>}
@@ -412,7 +568,7 @@ const MeetingDetail = ({ meetingId, onClose }) => {
         </div>
       </div>
 
-      {/* 수정 모달 */}
+      {/* 모임 수정 모달 */}
       {isEditModalVisible && (
         <EditMeetingModal
           meeting={meeting}
@@ -420,6 +576,62 @@ const MeetingDetail = ({ meetingId, onClose }) => {
           onMeetingUpdated={handleMeetingUpdated}
           apiBaseUrl={API_BASE_URL}
         />
+      )}
+
+      {/* 댓글 수정 모달 */}
+      {isCommentEditModalVisible && (
+        <div
+          className="comment-edit-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsCommentEditModalVisible(false);
+            }
+          }}
+        >
+          <div className="comment-edit-modal">
+            <div className="comment-edit-modal-header">
+              <h3>댓글 수정</h3>
+              <button
+                className="close-button"
+                onClick={() => setIsCommentEditModalVisible(false)}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="comment-edit-modal-body">
+              <textarea
+                value={editedCommentText}
+                onChange={(e) => setEditedCommentText(e.target.value)}
+                placeholder="댓글을 입력하세요"
+              />
+              <div className="comment-edit-modal-actions">
+                <button
+                  onClick={() => setIsCommentEditModalVisible(false)}
+                  className="cancel-button"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleCommentEditSubmit}
+                  className="save-button"
+                >
+                  저장
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
