@@ -1,115 +1,262 @@
-import React from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 
-const MeetingDetail = ({ meeting, onClose }) => {
-  const [comment, setComment] = React.useState('');
-  const [comments, setComments] = React.useState([
-    { id: 1, text: '오늘 저녁 7시 잊지 마세요!', user: 'Alice' },
-    { id: 2, text: '저는 30분 정도 늦을 것 같아요.', user: 'Bob' },
-    { id: 3, text: '주차 공간이 협소하니 대중교통 이용 부탁드립니다.', user: 'Charlie' }
-  ]);
-  const [isAttending, setIsAttending] = React.useState(false);
+const API_BASE_URL = "http://localhost:8080/api";
+
+const MeetingDetail = ({ meetingId, onClose }) => {
+  const [meeting, setMeeting] = useState(null);
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState([]);
+  const [isAttending, setIsAttending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [commentsPage, setCommentsPage] = useState(0);
+  const [hasMoreComments, setHasMoreComments] = useState(true);
+  const [loadingComments, setLoadingComments] = useState(false);
+
+  useEffect(() => {
+    fetchMeetingDetail();
+    fetchComments();
+    checkParticipationStatus();
+  }, [meetingId]);
+
+  const fetchMeetingDetail = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/recruitment-posts/${meetingId}`
+      );
+      const data = await response.json();
+      if (data.statusCode === 201 && data.result) {
+        setMeeting(data.result);
+      } else {
+        console.error("Failed to fetch meeting details:", data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching meeting detail:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchComments = async () => {
+    if (loadingComments || !hasMoreComments) return;
+
+    setLoadingComments(true);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/recruitment-posts/${meetingId}/comments?page=${commentsPage}&size=10`
+      );
+      const data = await response.json();
+
+      if (data.statusCode === 201 && data.result && data.result.content) {
+        const newComments = data.result.content.map((comment) => ({
+          id: comment.commentId,
+          text: comment.content,
+          user: comment.nickname,
+        }));
+
+        setComments((prev) => [...prev, ...newComments]);
+        setCommentsPage((prevPage) => prevPage + 1);
+        setHasMoreComments(!data.result.last);
+      } else {
+        setHasMoreComments(false);
+      }
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const checkParticipationStatus = async () => {
+    try {
+      // 이 API는 예시 명세에는 없지만, 참여 상태를 확인하는 API가 있다고 가정합니다.
+      // 실제 구현 시에는 백엔드 API에 맞게 조정해야 합니다.
+      const response = await fetch(
+        `${API_BASE_URL}/recruitment-posts/${meetingId}/participants/status`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsAttending(data.isParticipating || false);
+      }
+    } catch (error) {
+      console.error("Error checking participation status:", error);
+    }
+  };
 
   const handleCommentSubmit = async () => {
-    if (comment.trim() !== '') {
+    if (comment.trim() !== "") {
       try {
-        const response = await fetch('/api/comments', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            meetingId: meeting.id,
-            text: comment,
-            user: 'CurrentUser', // 실제 사용자 정보 사용
-          }),
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/recruitment-posts/${meetingId}/comments`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+            },
+            body: JSON.stringify({
+              content: comment,
+            }),
+          }
+        );
 
         const data = await response.json();
 
         if (response.ok) {
-          const newComment = {
-            id: comments.length + 1,
-            text: comment,
-            user: 'CurrentUser'
-          };
-          setComments([...comments, newComment]);
-          setComment('');
+          // 댓글이 성공적으로 작성되면 댓글 목록을 새로고침
+          setCommentsPage(0);
+          setComments([]);
+          setHasMoreComments(true);
+          fetchComments();
+          setComment("");
         } else {
-          alert(data.message || '댓글 작성에 실패했습니다.');
+          alert(data.message || "댓글 작성에 실패했습니다.");
         }
       } catch (error) {
-        console.error('Comment submission error:', error);
-        alert('Failed to connect to the server.');
+        console.error("Comment submission error:", error);
+        alert("Failed to connect to the server.");
       }
     }
   };
 
   const handleAttendance = async () => {
-    const newAttendance = !isAttending;
     try {
-      const response = await fetch(`/api/meetings/${meeting.id}/attendance`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ attending: newAttendance }),
-      });
-
-      const data = await response.json();
+      let response;
+      if (!isAttending) {
+        // 모임 참가 신청
+        response = await fetch(
+          `${API_BASE_URL}/recruitment-posts/${meetingId}/participants`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+            },
+          }
+        );
+      } else {
+        // 모임 참가 취소
+        response = await fetch(
+          `${API_BASE_URL}/recruitment-posts/${meetingId}/participants`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`, // 인증 토큰
+            },
+          }
+        );
+      }
 
       if (response.ok) {
-        setIsAttending(newAttendance);
-        console.log(`Attendance toggled to: ${newAttendance}`);
+        setIsAttending(!isAttending);
+        // 미팅 정보 갱신 (참가자 수 변경)
+        fetchMeetingDetail();
       } else {
-        alert(data.message || '참석 여부 변경에 실패했습니다.');
+        const data = await response.json();
+        alert(data.message || "참석 여부 변경에 실패했습니다.");
       }
     } catch (error) {
-      console.error('Attendance update error:', error);
-      alert('Failed to connect to the server.');
+      console.error("Attendance update error:", error);
+      alert("Failed to connect to the server.");
     }
   };
 
+  if (loading) {
+    return (
+      <div className="meeting-detail-overlay">
+        <div className="meeting-detail">
+          <div className="meeting-detail-body">
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!meeting) {
+    return (
+      <div className="meeting-detail-overlay">
+        <div className="meeting-detail">
+          <div className="meeting-detail-body">
+            <p>Meeting not found.</p>
+            <button onClick={onClose}>Close</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="meeting-detail-overlay" onClick={(e) => {
-      if (e.target === e.currentTarget) {
-        onClose();
-      }
-    }}>
+    <div
+      className="meeting-detail-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div className="meeting-detail">
         <div className="meeting-detail-header">
           <h2>{meeting.title}</h2>
           <button className="close-button" onClick={onClose}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor" />
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
+                fill="currentColor"
+              />
             </svg>
           </button>
         </div>
         <div className="meeting-detail-body">
           <div className="meeting-description">
-            <p><strong>유저:</strong> {meeting.user}</p>
-            <p><strong>장소:</strong> {meeting.location}</p>
-            <p><strong>날짜:</strong> {meeting.date}</p>
-            <p><strong>시간:</strong> {meeting.time}</p>
+            <p>
+              <strong>주최자:</strong> {meeting.leaderNickname}
+            </p>
+            <p>
+              <strong>장소:</strong> {meeting.location || "위치 정보 없음"}
+            </p>
+            <p>
+              <strong>식당 링크:</strong>{" "}
+              <a
+                href={meeting.restaurantLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {meeting.restaurantLink}
+              </a>
+            </p>
+            <p>
+              <strong>카테고리:</strong> {meeting.category}
+            </p>
+            <p>
+              <strong>내용:</strong> {meeting.content}
+            </p>
           </div>
           <div className="meeting-actions">
             <div className="attendance-info">
-              <p><strong>참석인원:</strong> {meeting.attendees} / {meeting.limit}</p>
-              {meeting.user !== 'CurrentUser' && (
-                <button onClick={handleAttendance}>
-                  {isAttending ? 'cancel' : 'Attend'}
+              <p>
+                <strong>참석인원:</strong> {meeting.currentParticipants} /{" "}
+                {meeting.maxParticipants}
+              </p>
+              {meeting.leaderNickname !== "CurrentUser" && (
+                <button
+                  onClick={handleAttendance}
+                  className={isAttending ? "cancel-button" : "attend-button"}
+                >
+                  {isAttending ? "참가 취소" : "참가 신청"}
                 </button>
               )}
-            </div>
-            <div className="participants-section">
-              <h4>참여자:</h4>
-              <ul className="participants-list">
-                {meeting.participants.map((participant) => (
-                  <li key={participant} className="participant-item">
-                    <img src={`https://i.pravatar.cc/30?u=${participant}`} alt={participant} />
-                    <span>{participant}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
           <div className="comments-section">
@@ -120,6 +267,12 @@ const MeetingDetail = ({ meeting, onClose }) => {
                   <strong>{comment.user}:</strong> {comment.text}
                 </div>
               ))}
+              {loadingComments && <p>댓글 로딩 중...</p>}
+              {hasMoreComments && !loadingComments && (
+                <button onClick={fetchComments} className="load-more-button">
+                  댓글 더 보기
+                </button>
+              )}
             </div>
             <div className="comment-input">
               <textarea
@@ -127,7 +280,7 @@ const MeetingDetail = ({ meeting, onClose }) => {
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="댓글을 입력하세요"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleCommentSubmit();
                   }
@@ -147,36 +300,85 @@ const MeetingCard = ({ meeting, onOpen }) => {
     <div className="meeting-card">
       <div className="meeting-card-header">{meeting.title}</div>
       <div className="meeting-card-body">
-        <p><strong>장소:</strong> {meeting.location}</p>
-        <p><strong>날짜:</strong> {meeting.date}</p>
-        <p><strong>시간:</strong> {meeting.time}</p>
-        <p><strong>참석인원:</strong> {meeting.attendees} / {meeting.limit}</p>
+        <p>
+          <strong>장소:</strong> {meeting.location || meeting.restaurantLink}
+        </p>
+        <p>
+          <strong>날짜:</strong> {meeting.date}
+        </p>
+        <p>
+          <strong>시간:</strong> {meeting.time}
+        </p>
+        <p>
+          <strong>참석인원:</strong> {meeting.attendees} / {meeting.limit}
+        </p>
       </div>
       <div className="meeting-card-footer">
-        <button onClick={() => onOpen(meeting)}>상세보기</button>
+        <button onClick={() => onOpen(meeting.id)}>상세보기</button>
       </div>
     </div>
   );
 };
 
-export const MeetingList = ({ meetings }) => {
-  const [selectedMeeting, setSelectedMeeting] = React.useState(null);
+export const MeetingList = ({
+  meetings,
+  onMeetingSelect,
+  onLoadMore,
+  hasMore,
+  loading,
+}) => {
+  const observer = useRef();
+  const [selectedMeetingId, setSelectedMeetingId] = useState(null);
 
-  const handleOpenMeeting = (meeting) => {
-    setSelectedMeeting(meeting);
+  const lastMeetingElementRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          onLoadMore();
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore, onLoadMore]
+  );
+
+  const handleOpenMeeting = (meetingId) => {
+    setSelectedMeetingId(meetingId);
+    if (onMeetingSelect) onMeetingSelect(meetingId);
   };
 
   const handleCloseMeeting = () => {
-    setSelectedMeeting(null);
+    setSelectedMeetingId(null);
+    if (onMeetingSelect) onMeetingSelect(null);
   };
 
   return (
     <div className="meeting-list">
-      {meetings.map(meeting => (
-        <MeetingCard key={meeting.id} meeting={meeting} onOpen={handleOpenMeeting} />
-      ))}
-      {selectedMeeting && (
-        <MeetingDetail meeting={selectedMeeting} onClose={handleCloseMeeting} />
+      {meetings.map((meeting, index) => {
+        if (meetings.length === index + 1) {
+          return (
+            <div ref={lastMeetingElementRef} key={meeting.id}>
+              <MeetingCard meeting={meeting} onOpen={handleOpenMeeting} />
+            </div>
+          );
+        } else {
+          return (
+            <MeetingCard
+              key={meeting.id}
+              meeting={meeting}
+              onOpen={handleOpenMeeting}
+            />
+          );
+        }
+      })}
+      {loading && <p className="loading-indicator">Loading...</p>}
+      {selectedMeetingId && (
+        <MeetingDetail
+          meetingId={selectedMeetingId}
+          onClose={handleCloseMeeting}
+        />
       )}
     </div>
   );
