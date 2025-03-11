@@ -16,7 +16,7 @@ export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
         if (response.ok) {
           const data = await response.json();
           setReviews(data);
-          console.log(data)
+
         } else {
           const errorData = await response.json();
           setError(errorData.message || "리뷰를 불러오는데 실패했습니다.");
@@ -43,8 +43,18 @@ export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
     setSelectedReviewId(null);
   };
 
+  const handleReviewUpdate = (updatedReview) => {
+    setReviews(reviews.map(review => 
+      review.id === updatedReview.id ? updatedReview : review
+    ));
+  };
+
   const handleReviewCreated = (newReview) => {
     setReviews([...reviews, newReview]);
+  };
+
+  const handleReviewDelete = (reviewId) => {
+    setReviews(reviews.filter(review => review.id !== reviewId));
   };
 
   return (
@@ -60,7 +70,12 @@ export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
       )}
       
       {selectedReviewId && (
-        <ReviewDetailPage reviewId={selectedReviewId} onClose={handleCloseReview} />
+        <ReviewDetailPage 
+        reviewId={selectedReviewId} 
+        onClose={handleCloseReview} 
+        onReviewUpdate={handleReviewUpdate}
+        onReviewDelete={handleReviewDelete}
+        />
       )}
     </div>
   );

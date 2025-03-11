@@ -5,8 +5,8 @@ import {Navigation} from './components/login/login.js'
 import { CreateMeetingModal } from './components/meeting/meetingModal.js';
 import { SettingsPage } from './components/login/SettingsPage.js';
 
-import { ReviewPage } from './components/newReview/ReviewPage.js';
-import { CreateReviewModal } from './components/newReview/CreateReviewModal.js';
+import { ReviewPage } from './components/review/ReviewPage.js';
+import { CreateReviewModal } from './components/review/CreateReviewModal.js';
 
 const App = () => {
   const [meetings, setMeetings] = React.useState([]);

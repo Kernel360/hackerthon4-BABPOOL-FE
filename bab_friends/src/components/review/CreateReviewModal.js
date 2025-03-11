@@ -37,7 +37,6 @@ export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
       if (response.ok) {
         const newReview = await response.json();
         alert("리뷰가 성공적으로 작성되었습니다!");
-        console.log(newReview)
         
         // 이미지가 있으면 업로드 (실제 구현은 서버 API에 맞게 조정 필요)
         if (images.length > 0) {

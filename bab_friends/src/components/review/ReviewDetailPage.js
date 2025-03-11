@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ReviewDetail } from "./ReviewDetail";
 
-export const ReviewDetailPage = ({ reviewId, onClose }) => {
+export const ReviewDetailPage = ({ reviewId, onClose, onReviewUpdate, onReviewDelete }) => {
   const [review, setReview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,6 +33,13 @@ export const ReviewDetailPage = ({ reviewId, onClose }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reviewId]);
 
+  const handleReviewUpdate = (updatedReview) => {
+    setReview(updatedReview);
+    if (onReviewUpdate) {
+      onReviewUpdate(updatedReview);
+    }
+  };
+
   if (loading) {
     return (
       <div className="modal-overlay">
@@ -61,5 +68,10 @@ export const ReviewDetailPage = ({ reviewId, onClose }) => {
     );
   }
 
-  return <ReviewDetail review={review} onClose={onClose} />;
+  return <ReviewDetail 
+  review={review} 
+  onClose={onClose} 
+  onReviewUpdate={handleReviewUpdate}
+  onReviewDelete={onReviewDelete}
+  />;
 };
