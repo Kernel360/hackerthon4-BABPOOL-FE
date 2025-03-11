@@ -1,11 +1,8 @@
+// src/components/meeting/CreateMeetingModal.js
 import React, { useState } from "react";
 import { getAccessToken } from "../login/authService.js";
 
-export const CreateMeetingModal = ({
-  onClose,
-  onMeetingCreated,
-  apiBaseUrl,
-}) => {
+const CreateMeetingModal = ({ onClose, onMeetingCreated, apiBaseUrl }) => {
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -217,3 +214,5 @@ export const CreateMeetingModal = ({
     </div>
   );
 };
+
+export default CreateMeetingModal;

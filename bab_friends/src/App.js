@@ -1,8 +1,9 @@
+// src/App.js
 import "./App.css";
 import React, { useEffect } from "react";
-import { MeetingList } from "./components/meeting/meeting.js";
+import MeetingList from "./components/meeting/MeetingList";
 import { Navigation } from "./components/login/login.js";
-import { CreateMeetingModal } from "./components/meeting/meetingModal.js";
+import CreateMeetingModal from "./components/meeting/CreateMeetingModal";
 import { SettingsPage } from "./components/login/SettingsPage.js";
 import SetPassword from "./components/login/SetPassword.js";
 
