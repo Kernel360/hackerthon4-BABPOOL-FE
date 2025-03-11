@@ -77,8 +77,8 @@ export const CommentSection = ({ reviewId }) => {
           ) : (
             comments.map((comment) => (
               <div key={comment.id} className="comment">
-                <strong>{comment.user || comment.username || comment.author || "사용자"}:</strong>{" "}
-                {comment.text || comment.content}
+                <strong>{comment.nickname}:</strong>{" "}
+                {comment.content}
               </div>
             ))
           )}

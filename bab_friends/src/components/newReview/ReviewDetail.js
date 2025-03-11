@@ -8,7 +8,7 @@ export const ReviewDetail = ({ review, onClose }) => {
   return (
     <Modal title={review.title} onClose={onClose}>
       <div className="review-content">
-        <p><strong>작성자:</strong> {review.author}</p>
+        <p><strong>작성자:</strong> {review.nickname}</p>
         <p><strong>내용:</strong> {review.content}</p>
         <p><strong>평점:</strong> {review.rating}</p>
         

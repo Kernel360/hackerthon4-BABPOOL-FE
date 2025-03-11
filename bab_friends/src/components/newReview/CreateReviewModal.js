@@ -29,21 +29,22 @@ export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
           userId: 1, // 실제 로그인된 사용자 ID로 변경 필요
           title,
           content,
-          category
-          // rating
+          category,
+          rating
         }),
       });
 
       if (response.ok) {
-        // const newReview = await response.json();
+        const newReview = await response.json();
         alert("리뷰가 성공적으로 작성되었습니다!");
+        console.log(newReview)
         
         // 이미지가 있으면 업로드 (실제 구현은 서버 API에 맞게 조정 필요)
         if (images.length > 0) {
-          const formData = new FormData();
-          images.forEach(image => {
-            formData.append("images", image);
-          });
+          // const formData = new FormData();
+          // images.forEach(image => {
+          //   formData.append("images", image);
+          // });
           
           // await fetch(`http://localhost:8080/api/review/${newReview.id}/images`, {
           //   method: "POST",
@@ -51,14 +52,14 @@ export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
           // });
         }
         
-        // if (onReviewCreated) {
-        //   onReviewCreated(newReview);
-        // }
+        if (onReviewCreated) {
+          onReviewCreated(newReview);
+        }
         
         onClose();
       } else {
-        // const errorData = await response.json();
-        // alert(errorData.message || "리뷰 작성에 실패했습니다.");
+        const errorData = await response.json();
+        alert(errorData.message || "리뷰 작성에 실패했습니다.");
       }
     } catch (error) {
       console.error("리뷰 작성 오류:", error);

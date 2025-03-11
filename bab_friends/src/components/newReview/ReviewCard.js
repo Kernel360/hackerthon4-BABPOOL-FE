@@ -8,7 +8,7 @@ export const ReviewCard = ({ review, onClick }) => {
         <h3>{review.title}</h3>
       </div>
       <div className="review-card-footer">
-        작성자: {review.author}
+        작성자: {review.nickname}
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import { CreateReviewModal } from './components/newReview/CreateReviewModal.js';
 
 const App = () => {
   const [meetings, setMeetings] = React.useState([]);
+  const [reviews, setReviews] = React.useState([])
 
   const [currentPage, setCurrentPage] = React.useState('meetings');
   const [isCreateMeetingVisible, setIsCreateMeetingVisible] = React.useState(false);
@@ -24,21 +25,11 @@ const App = () => {
     setSelectedReviewId(null)
   }
 
-  const renderPage = () => {
-    if (currentPage === 'meetings') {
-      return (
-        <div>
-          <h1 style={{ textAlign: 'center' }}>밥 친구 모임</h1>
-          <MeetingList meetings={meetings} />
-        </div>
-      );
-    } else if (currentPage === 'reviews') {
-      return <ReviewPage onReviewSelect={handleReviewSelect}/>;
-    } else if (currentPage === 'settings') {
-      return <SettingsPage />;
-    }
-    return null;
-  };
+  const handleReviewCreated = (newReview) => {
+    setReviews(prev => [...prev, newReview])
+  }
+
+
 
   const handleCreateMeetingOpen = () => {
     setIsCreateMeetingVisible(true);
@@ -64,6 +55,26 @@ const App = () => {
     }
   };
 
+  const renderPage = () => {
+    if (currentPage === 'meetings') {
+      return (
+        <div>
+          <h1 style={{ textAlign: 'center' }}>밥 친구 모임</h1>
+          <MeetingList meetings={meetings} />
+        </div>
+      );
+    } else if (currentPage === 'reviews') {
+      return <ReviewPage 
+      onReviewSelect={handleReviewSelect}
+      reviews={reviews}
+      setReviews={setReviews}
+      />;
+    } else if (currentPage === 'settings') {
+      return <SettingsPage />;
+    }
+    return null;
+  };
+
   return (
     <div>
       <Navigation setPage={setCurrentPage} />
@@ -75,12 +86,8 @@ const App = () => {
       )}
 
       {isCreateReviewVisible && (
-        <CreateReviewModal onClose={handleCreateReviewClose} />
+        <CreateReviewModal onClose={handleCreateReviewClose} onReviewCreated={handleReviewCreated}/>
       )}
-
-      {/* {selectedReviewId && (
-        <ReviewDetailPage reviewId={selectedReviewId} onClose={handleReviewDetailClose} />
-      )} */}
     </div>
   );
 };
