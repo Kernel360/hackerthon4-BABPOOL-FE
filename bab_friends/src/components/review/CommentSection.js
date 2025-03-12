@@ -25,7 +25,7 @@ export const CommentSection = ({ reviewId }) => {
       try {
         setLoading(true);
       let token = localStorage.getItem("token")
-        const response = await fetch(`http://${API_BASE_URL}/api/review/${reviewId}/comment`,
+        const response = await fetch(`${API_BASE_URL}/review/${reviewId}/comment`,
           {headers: {
             Authorization: getAccessToken()
           }}
@@ -53,7 +53,7 @@ export const CommentSection = ({ reviewId }) => {
     if (comment.trim() === "") return;
     
     try {
-      const response = await fetch(`http://localhost:8080/api/review/${reviewId}/comment`, {
+      const response = await fetch(`${API_BASE_URL}/review/${reviewId}/comment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,7 +105,7 @@ export const CommentSection = ({ reviewId }) => {
     if (editedCommentText.trim() === "") return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/review/${reviewId}/comment/${commentId}`, {
+      const response = await fetch(`${API_BASE_URL}/review/${reviewId}/comment/${commentId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -151,7 +151,7 @@ export const CommentSection = ({ reviewId }) => {
     }
     
     try {
-      const response = await fetch(`http://localhost:8080/api/review/${reviewId}/comment/${commentId}`, {
+      const response = await fetch(`${API_BASE_URL}/review/${reviewId}/comment/${commentId}`, {
         method: "DELETE",
         headers: {
           Authorization: getAccessToken()

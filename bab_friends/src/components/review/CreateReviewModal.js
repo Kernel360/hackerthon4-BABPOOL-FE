@@ -24,12 +24,14 @@ export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
 
     try {
       const formData = new FormData();
+      const userId = localStorage.getItem("userId")
       formData.append(
         "dto",
         new Blob(
           [
+            
             JSON.stringify({
-              userId: 1,
+              userId,
               title,
               content,
               category,
@@ -44,7 +46,7 @@ export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
         formData.append("file", image)
       })
 
-      const response = await fetch(`http://${API_BASE_URL}/api/review`, {
+      const response = await fetch(`${API_BASE_URL}/review`, {
         method: "POST",
         body: formData,
         headers: {

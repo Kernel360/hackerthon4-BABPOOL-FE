@@ -15,7 +15,7 @@ export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
       try {
         setLoading(true);
         console.log(localStorage.getItem("token"))
-        const response = await fetch("http://localhost:8080/api/review", {
+        const response = await fetch(`${API_BASE_URL}/review`, {
           headers: {
             Authorization: getAccessToken()
           }

@@ -39,7 +39,7 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
     try {
       let token = localStorage.getItem("token")
 
-      const response = await fetch(`http://${API_BASE_URL}/api/review/${review.id}`, {
+      const response = await fetch(`${API_BASE_URL}/review/${review.id}`, {
         method: "DELETE",
         headers: {
           Authorization: getAccessToken()

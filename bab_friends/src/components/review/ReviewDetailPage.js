@@ -15,7 +15,7 @@ export const ReviewDetailPage = ({ reviewId, onClose, onReviewUpdate, onReviewDe
       
       try {
         setLoading(true);
-        const response = await fetch(`http://${API_BASE_URL}/api/review/${reviewId}`, {
+        const response = await fetch(`${API_BASE_URL}/review/${reviewId}`, {
           headers: {
             Authorization: getAccessToken()
           }

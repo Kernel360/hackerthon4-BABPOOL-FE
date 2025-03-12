@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "./Modal";
 import { getAccessToken } from "../login/authService";
 
-const API_BASE_URL = "http://3.38.71.28:8080/api";
+const API_BASE_URL = "http://3.38.71.28:8080";
 
 export const EditReviewForm = ({ review, onCancel, onSuccess }) => {
   const [title, setTitle] = useState(review.title || "");
@@ -32,7 +32,7 @@ export const EditReviewForm = ({ review, onCancel, onSuccess }) => {
 
     try {
       let token = localStorage.getItem("token")
-      const response = await fetch(`http://${API_BASE_URL}/api/review/${review.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/review/${review.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json; charset=utf-8",
