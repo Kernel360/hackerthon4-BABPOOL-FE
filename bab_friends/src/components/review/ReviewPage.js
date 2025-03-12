@@ -3,6 +3,8 @@ import { ReviewList } from "./ReviewList";
 import { ReviewDetailPage } from "./ReviewDetailPage";
 import { getAccessToken } from "../login/authService";
 
+const API_BASE_URL = "http://3.38.71.28:8080/api";
+
 export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -65,7 +67,7 @@ export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
 
   return (
     <div id="review-root">
-      <h1>리뷰 게시판</h1>
+      <h1 className="page-title">리뷰 게시판</h1>
       
       {loading ? (
         <p className="loading">리뷰를 불러오는 중...</p>

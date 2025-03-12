@@ -1,7 +1,7 @@
 body {
   font-family: "Noto Sans KR", sans-serif;
   margin: 0;
-  padding: 0;
+  padding: 40;
   background-color: #f8f9fa;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -18,40 +18,90 @@ body {
 }
 
 .site-title {
-  font-size: 1.4em;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700; 
+  font-size: 60px;
+  color: #FF7F50 ; 
+  letter-spacing: 1px;
+}
+
+.bap {
+  color: #FF7F50; 
+}
+
+.pool {
+  color: #3B82F6; 
+}
+
+.page-title {
+  text-align: center;
+  font-size: 24px;
   font-weight: 600;
   color: #343a40;
+  margin-top: 30px;  /* 헤더와의 거리 */
+  margin-bottom: 40px; /* 콘텐츠와의 거리 */
+}
+
+.nav-container {
+  display: flex;
+  justify-content: center; /* 중앙 정렬 */
+  margin-top: 10px; /* 간격 조정 */
 }
 
 .nav-links {
   display: flex;
-  gap: 20px;
+  gap: 140px;
+}
+.nav-item {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
 }
 
 .nav-links a {
   text-decoration: none;
   color: #495057;
   font-weight: 500;
+  font-size: 25px;
   transition: color 0.3s ease;
 }
 
-.nav-links a:hover {
-  color: #007bff;
+.nav-links .review-link:hover {
+  color: #FF7F50; /* Hover 시 코랄 색 */
+}
+
+.nav-links .pool-link:hover {
+  color: #3B82F6; /* Hover 시 코랄 색 */
+}
+
+#meeting-root,
+#review-root {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
 }
 
 .login-button {
-  background-color: #007bff;
+  background-color: #3B82F6;
   color: white;
   border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
+  padding: 14px 20px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: 18px;
   transition: background-color 0.2s ease-in-out;
+  width: 120px; 
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .login-button:hover {
-  background-color: #0056b3;
+  background-color: #3B82F6;
 }
 
 /* User Menu Styles */
@@ -61,7 +111,7 @@ body {
 }
 
 .user-button {
-  background-color: #007bff;
+  background-color: #3B82F6;
   color: white;
   border: none;
   padding: 8px 13px;
@@ -72,7 +122,7 @@ body {
 }
 
 .user-button:hover {
-  background-color: #0056b3;
+  background-color: #3B82F6;
 }
 
 .dropdown-menu {
@@ -186,7 +236,7 @@ h1 {
 }
 
 .meeting-card-footer button:hover {
-  background-color: #0056b3;
+  background-color: #3B82F6;
 }
 
 .meeting-detail-overlay {
@@ -404,7 +454,7 @@ h1 {
 }
 
 .comment-input button:hover {
-  background-color: #0056b3;
+  background-color: #3B82F6;
 }
 
 /* Login Modal Styles */
@@ -486,7 +536,7 @@ h1 {
 }
 
 .login-button-form:hover {
-  background-color: #0056b3;
+  background-color: #3B82F6;
 }
 
 .close-button-login {
@@ -627,7 +677,7 @@ h1 {
 }
 
 .signup-button-form:hover {
-  background-color: #0056b3;
+  background-color: #3B82F6;
 }
 
 #review-root {
@@ -699,7 +749,7 @@ h1 {
 
 /* Floating Button Styles */
 .floating-button {
-  position: fixed;
+  position: flex;
   bottom: 40px;
   right: 150px;
   background-color: #007bff;
@@ -720,7 +770,7 @@ h1 {
 }
 
 .floating-button:hover {
-  background-color: #0056b3;
+  background-color: #3B82F6;
 }
 
 @keyframes fadeIn {
@@ -748,8 +798,6 @@ h1 {
 .auth-toggle-link:hover {
   color: #007bff;
 }
-
-/* App.css에 추가하세요 */
 
 .modal-overlay {
   position: fixed;
@@ -809,7 +857,6 @@ h1 {
   z-index: 100;
 }
 
-/* App.css에 추가하세요 */
 
 /* 리뷰 액션 버튼 */
 .review-header {
@@ -1452,4 +1499,50 @@ h1 {
 
 .comment-input button:hover {
   background-color: #0b5ed7;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column; /* 수직 정렬 */
+    align-items: center;
+    text-align: center;
+  }
+
+  .logo-container {
+    margin-bottom: 40px; /* 로고와 네비게이션 사이 간격 */
+  }
+
+  
+
+  .nav-links {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 50px;
+    margin-bottom: 20px;
+  }
+
+  .login-button {
+    margin-top: 5px; /* 로그인 버튼 간격 조정 */
+  }
+
+  .login-modal-content {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  .signup-modal-content{
+    margin: 10px;
+    padding: 15px;
+  }
+
+
+  .form-group label {
+    display: block;
+    text-align: left;  /* 왼쪽 정렬 */
+    font-size: 14px;   /* 적당한 크기 */
+    font-weight: 500;
+    margin-bottom: 5px; /* 입력 필드와의 간격 */
+    color: #333; /* 색상 조정 */
+  }
 }

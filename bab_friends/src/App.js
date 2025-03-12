@@ -24,6 +24,7 @@ const App = () => {
   const [hasMore, setHasMore] = React.useState(true);
   const [page, setPage] = React.useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
 
   const [currentPage, setCurrentPage] = React.useState("meetings");
   const [isCreateMeetingVisible, setIsCreateMeetingVisible] =
@@ -37,6 +38,11 @@ const App = () => {
   useEffect(() => {
     checkLoginStatus();
   }, []);
+
+  const handleLoginClick = () => {
+    setLoginModalVisible(true);
+  };
+
 
   // 로그인 상태 확인 함수
   const checkLoginStatus = () => {
@@ -179,7 +185,6 @@ const App = () => {
       setIsCreateMeetingVisible(true);
     } else {
       alert("로그인이 필요한 서비스입니다.");
-      setCurrentPage("login"); // 로그인 페이지로 이동
     }
   };
 
@@ -193,7 +198,6 @@ const App = () => {
       setIsCreateReviewVisible(true);
     } else {
       alert("로그인이 필요한 서비스입니다.");
-      setCurrentPage("login"); // 로그인 페이지로 이동
     }
   };
 
@@ -204,7 +208,6 @@ const App = () => {
   const handleFloatingButtonClick = () => {
     if (!isLoggedIn) {
       alert("로그인이 필요한 서비스입니다.");
-      setCurrentPage("login");
       return;
     }
 
@@ -218,8 +221,8 @@ const App = () => {
   const renderPage = () => {
     if (currentPage === "meetings") {
       return (
-        <div>
-          <h1 style={{ textAlign: "center" }}>밥 친구 모임</h1>
+        <div id="meeting-root">
+          <h1 className="page-title">밥 친구 모임</h1>
           <MeetingList
             meetings={meetings}
             onMeetingSelect={handleMeetingSelect}
@@ -246,7 +249,7 @@ const App = () => {
       ) : (
         <div className="login-required-message">
           <h2>로그인이 필요한 서비스입니다.</h2>
-          <button onClick={() => setCurrentPage("login")}>로그인 하기</button>
+          <button onClick={handleLoginClick}>로그인 하기</button>
         </div>
       );
     } else if (currentPage === "password") {
@@ -256,7 +259,7 @@ const App = () => {
       ) : (
         <div className="login-required-message">
           <h2>로그인이 필요한 서비스입니다.</h2>
-          <button onClick={() => setCurrentPage("login")}>로그인 하기</button>
+          <button onClick={handleLoginClick}>로그인 하기</button>
         </div>
       );
     } else if (currentPage === "login") {

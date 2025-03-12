@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { storeTokens, logout } from "./authService";
 
-const API_BASE_URL = "http://3.38.71.28:8080/api";
+const API_BASE_URL = "http://localhost:8080/api";
 
 export const Navigation = ({ setPage }) => {
   // 로그인 상태 확인 (localStorage에 토큰이 있는지 확인)
@@ -27,7 +27,11 @@ export const Navigation = ({ setPage }) => {
   };
 
   const handleUserButtonClick = () => {
-    setDropdownVisible(!dropdownVisible);
+    setDropdownVisible((prev) => !prev); 
+  };
+  const handleDropdownItemClick = (action) => {
+    setDropdownVisible(false); // 드롭다운 닫기
+    setPage(action); 
   };
 
   const handlePasswordChange = () => {
@@ -53,7 +57,6 @@ export const Navigation = ({ setPage }) => {
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      localStorage.removeItem("userId")
       setIsLoggedIn(false);
       setDropdownVisible(false);
       window.location.reload();
@@ -62,12 +65,24 @@ export const Navigation = ({ setPage }) => {
 
   return (
     <nav className="navbar">
-      <span className="site-title">밥친구</span>
-      <div className="nav-links">
-        <a href="#" onClick={() => setPage("meetings")}>모임 게시판</a>
-        <a href="#" onClick={() => setPage("reviews")}>리뷰 게시판</a>
-      </div>
-      {isLoggedIn ? (
+  <div className="logo-container">
+    <span className="site-title" onClick={() => setPage("meetings")}>
+      <span className="bap">BAP</span><span className="pool">POOL</span>
+    </span>
+  </div>
+
+  <div className="nav-container">  
+  <div className="nav-links">
+    <span className="nav-item">
+      <a href="#" className="pool-link" onClick={() => setPage("meetings")}>POOL</a>
+    </span>
+    <span className="nav-item">
+      <a href="#" className="review-link" onClick={() => setPage("reviews")}>REVIEW</a>
+    </span>
+  </div>
+</div>
+
+{isLoggedIn ? (
         <div className="user-menu">
           <button className="user-button" onClick={handleUserButtonClick}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -75,11 +90,11 @@ export const Navigation = ({ setPage }) => {
             </svg>
           </button>
           {dropdownVisible && (
-            <div className="dropdown-menu">
-              <a href="#" onClick={() => setPage("settings")}>설정</a>
-              <a href="#" onClick={() => setPage("password")}>비밀번호 변경</a> 
-              <a href="#" onClick={handleLogout}>로그아웃</a>
-            </div>
+             <div className="dropdown-menu">
+             <a href="#" onClick={() => handleDropdownItemClick("settings")}>설정</a>
+             <a href="#" onClick={() => handleDropdownItemClick("password")}>비밀번호 변경</a> 
+             <a href="#" onClick={() => { handleDropdownItemClick(""); handleLogout(); }}>로그아웃</a>
+           </div>
           )}
         </div>
       ) : (
@@ -100,7 +115,7 @@ export const Navigation = ({ setPage }) => {
           )}
         </>
       )}
-    </nav>
+</nav>
   );
 };
 
@@ -116,14 +131,13 @@ const LoginModal = ({ onClose, setIsLoggedIn, setSignupModalVisible }) => {
       const response = await fetch(`${API_BASE_URL}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password}),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         storeTokens(data.accessToken, data.refreshToken);
-        localStorage.setItem("userId", data.userId)
         setIsLoggedIn(true);
         onClose();
         window.location.reload(); // 로그인 후 새로고침
