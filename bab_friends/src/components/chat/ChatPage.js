@@ -2,6 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import { Stomp } from "@stomp/stompjs";
 import { Link, useParams, BrowserRouter } from "react-router-dom";
 import "./ChatPage.css";
+import { getAccessToken } from "../login/authService";
+
+const API_BASE_URL = "3.38.71.28:8080";
 
 export function ChatPage({roomId, userId}) {
   const [messages, setMessages] = useState([]);
@@ -17,12 +20,14 @@ export function ChatPage({roomId, userId}) {
   }, [messages])
 
   useEffect(() => {
-    connect()
-    return () => disconnect()
+      connect();
+    return () => disconnect();
   }, [roomId]);
 
   const connect = () => {
-    const socket = new WebSocket("ws://localhost:8080/ws/websocket");
+    console.log("userId",userId)
+    console.log("roomId", roomId)
+    const socket = new WebSocket(`ws://${API_BASE_URL}/ws/websocket`);
     stompClient.current = Stomp.over(socket);
 
     stompClient.current.connect({}, () => {
@@ -34,7 +39,7 @@ export function ChatPage({roomId, userId}) {
   };
 
   const disconnect = () => {
-    if (stompClient.current) {
+    if (stompClient.current && stompClient.current.connected) {
       stompClient.current.disconnect();
     }
   };

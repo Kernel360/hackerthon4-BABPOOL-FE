@@ -3,10 +3,19 @@ import { CommentSection } from "./CommentSection";
 import { Modal } from "./Modal";
 import { EditReviewForm } from "./EditReviewForm";
 import { ChatPage } from "../chat/ChatPage";
+import { getAccessToken } from "../login/authService";
+
+const API_BASE_URL = "http://3.38.71.28:8080/api";
 
 export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }) => {
   const [isEditing, setIsEditing] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [userId, setUserId] = React.useState(0)
+
+  React.useEffect(() => {
+    const a = localStorage.getItem("userId")
+    setUserId(a)
+  }, [])
 
   if (!review) return null;
 
@@ -30,10 +39,10 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
     try {
       let token = localStorage.getItem("token")
 
-      const response = await fetch(`http://localhost:8080/api/review/${review.id}`, {
+      const response = await fetch(`http://${API_BASE_URL}/api/review/${review.id}`, {
         method: "DELETE",
         headers: {
-          "Authorization": token
+          Authorization: getAccessToken()
         }
       });
 
@@ -87,10 +96,13 @@ export const ReviewDetail = ({ review, onClose, onReviewUpdate, onReviewDelete }
       <div className="review-content">
         <div className="review-header">
           <p><strong>작성자:</strong> {review.nickname}</p>
-          <div className="review-actions">
+          
+            {userId == review.userId && 
+            <div className="review-actions">
             <button className="edit-button" onClick={handleEditClick}>수정</button>
             <button className="delete-button" onClick={handleDeleteClick}>삭제</button>
-          </div>
+            </div>
+            }
         </div>
         <p><strong>내용:</strong> {review.content}</p>
         <p><strong>평점:</strong> {review.rating}</p>

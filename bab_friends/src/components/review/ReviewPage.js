@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ReviewList } from "./ReviewList";
 import { ReviewDetailPage } from "./ReviewDetailPage";
+import { getAccessToken } from "../login/authService";
 
 export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,7 @@ export const ReviewPage = ({onReviewSelect, reviews, setReviews}) => {
         console.log(localStorage.getItem("token"))
         const response = await fetch("http://localhost:8080/api/review", {
           headers: {
-            "Authorization": localStorage.getItem("token")
+            Authorization: getAccessToken()
           }
         });
         

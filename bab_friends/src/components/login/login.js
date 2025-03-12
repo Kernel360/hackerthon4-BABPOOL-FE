@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { storeTokens, logout } from "./authService";
 
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = "http://3.38.71.28:8080/api";
 
 export const Navigation = ({ setPage }) => {
   // 로그인 상태 확인 (localStorage에 토큰이 있는지 확인)
@@ -53,6 +53,7 @@ export const Navigation = ({ setPage }) => {
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userId")
       setIsLoggedIn(false);
       setDropdownVisible(false);
       window.location.reload();
@@ -115,13 +116,14 @@ const LoginModal = ({ onClose, setIsLoggedIn, setSignupModalVisible }) => {
       const response = await fetch(`${API_BASE_URL}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password}),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         storeTokens(data.accessToken, data.refreshToken);
+        localStorage.setItem("userId", data.userId)
         setIsLoggedIn(true);
         onClose();
         window.location.reload(); // 로그인 후 새로고침

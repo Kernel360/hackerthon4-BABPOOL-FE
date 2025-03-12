@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { getAccessToken } from "../login/authService.js";
 import { ChatPage } from "../chat/ChatPage";
 
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = "http://3.38.71.28:8080/api";
+
 
 const MeetingDetail = ({ meetingId, onClose }) => {
   const [meeting, setMeeting] = useState(null);

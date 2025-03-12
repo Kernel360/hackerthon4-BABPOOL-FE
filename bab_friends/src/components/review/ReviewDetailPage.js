@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ReviewDetail } from "./ReviewDetail";
+import { getAccessToken } from "../login/authService";
+
+const API_BASE_URL = "http://3.38.71.28:8080/api";
 
 export const ReviewDetailPage = ({ reviewId, onClose, onReviewUpdate, onReviewDelete }) => {
   const [review, setReview] = useState(null);
@@ -12,9 +15,9 @@ export const ReviewDetailPage = ({ reviewId, onClose, onReviewUpdate, onReviewDe
       
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8080/api/review/${reviewId}`, {
+        const response = await fetch(`http://${API_BASE_URL}/api/review/${reviewId}`, {
           headers: {
-            "Authorization": localStorage.getItem("token")
+            Authorization: getAccessToken()
           }
         });
         

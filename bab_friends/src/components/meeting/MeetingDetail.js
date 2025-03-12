@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { getAccessToken } from "../login/authService.js";
 import EditMeetingModal from "./EditMeetingModal";
+import { ChatPage } from "../chat/ChatPage.js";
 
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = "http://3.38.71.28:8080/api";
 
 const MeetingDetail = ({ meetingId, onClose }) => {
   const [meeting, setMeeting] = useState(null);
@@ -19,11 +20,21 @@ const MeetingDetail = ({ meetingId, onClose }) => {
     useState(false);
   const [editingComment, setEditingComment] = useState(null);
   const [editedCommentText, setEditedCommentText] = useState("");
+  
+  const [showChat, setShowChat] = useState(false)
+  const [userId, setUserId] = useState(null)
+  useEffect(() => {
+    if (isAttending) {
+      setShowChat(true);
+    }
+  }, [isAttending]);
 
   useEffect(() => {
     fetchMeetingDetail();
     fetchComments();
     checkParticipationStatus();
+    const a = localStorage.getItem("userId")
+    setUserId(a)
   }, [meetingId]);
 
   const fetchMeetingDetail = async () => {
@@ -117,7 +128,7 @@ const MeetingDetail = ({ meetingId, onClose }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setIsAttending(data.isParticipating || false);
+        setIsAttending(data.result.isParticipating || false);
       }
     } catch (error) {
       console.error("Error checking participation status:", error);
@@ -290,6 +301,7 @@ const MeetingDetail = ({ meetingId, onClose }) => {
       if (response.ok) {
         setIsAttending(!isAttending);
         fetchMeetingDetail();
+        setShowChat(!isAttending)
       } else {
         const data = await response.json();
         alert(data.message || "참석 여부 변경에 실패했습니다.");
@@ -350,6 +362,10 @@ const MeetingDetail = ({ meetingId, onClose }) => {
       ...updatedMeeting,
     });
     setIsEditModalVisible(false);
+  };
+
+  const toggleChat = () => {
+    setShowChat(!showChat);
   };
 
   // formatDateTime 함수를 분리합니다
@@ -525,6 +541,14 @@ const MeetingDetail = ({ meetingId, onClose }) => {
                   {isAttending ? "참가 취소" : "참가 신청"}
                 </button>
               )}
+              {isAttending && (
+                      <button
+                        onClick={toggleChat}
+                        className="chat-toggle-button"
+                      >
+                        {showChat ? "채팅 닫기" : "채팅 열기"}
+                      </button>
+                    )}
             </div>
           </div>
           <div className="comments-section">
@@ -606,6 +630,11 @@ const MeetingDetail = ({ meetingId, onClose }) => {
           </div>
         </div>
       </div>
+      {showChat && (
+          <div className="chat-window">
+            <ChatPage roomId={meetingId} userId={userId}/>
+          </div>
+        )}
 
       {/* 모임 수정 모달 */}
       {isEditModalVisible && (

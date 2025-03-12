@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = "http://3.38.71.28:8080/api";
+
 
 // authService.js에 추가할 코드
 export const isAuthenticated = () => {

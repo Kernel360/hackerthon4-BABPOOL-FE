@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { Modal } from "./Modal";
+import { getAccessToken } from "../login/authService";
+
+const API_BASE_URL = "http://3.38.71.28:8080/api";
 
 export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
   const [title, setTitle] = useState("");
@@ -41,11 +44,11 @@ export const CreateReviewModal = ({ onClose, onReviewCreated }) => {
         formData.append("file", image)
       })
 
-      const response = await fetch("http://localhost:8080/api/review", {
+      const response = await fetch(`http://${API_BASE_URL}/api/review`, {
         method: "POST",
         body: formData,
         headers: {
-          "Authorization": localStorage.getItem("token")
+          Authorization: getAccessToken()
         }
       });
 

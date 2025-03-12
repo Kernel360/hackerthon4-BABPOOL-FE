@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import {getAccessToken} from "../login/authService"
+
+const API_BASE_URL = "http://3.38.71.28:8080/api";
 
 export const CommentSection = ({ reviewId }) => {
   const [comment, setComment] = useState("");
@@ -22,9 +25,9 @@ export const CommentSection = ({ reviewId }) => {
       try {
         setLoading(true);
       let token = localStorage.getItem("token")
-        const response = await fetch(`http://localhost:8080/api/review/${reviewId}/comment`,
+        const response = await fetch(`http://${API_BASE_URL}/api/review/${reviewId}/comment`,
           {headers: {
-            "Authorization": token
+            Authorization: getAccessToken()
           }}
         );
         const data = await response.json();
@@ -54,6 +57,7 @@ export const CommentSection = ({ reviewId }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: getAccessToken()
         },
         body: JSON.stringify({
           userId, // 실제 로그인된 사용자 ID로 변경 필요
@@ -105,6 +109,7 @@ export const CommentSection = ({ reviewId }) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          Authorization: getAccessToken()
         },
         body: JSON.stringify({
           userId,
@@ -148,6 +153,9 @@ export const CommentSection = ({ reviewId }) => {
     try {
       const response = await fetch(`http://localhost:8080/api/review/${reviewId}/comment/${commentId}`, {
         method: "DELETE",
+        headers: {
+          Authorization: getAccessToken()
+        }
       });
 
       if (response.ok) {
@@ -197,10 +205,11 @@ export const CommentSection = ({ reviewId }) => {
                       <strong>{comment.nickname}:</strong>{" "}
                       {comment.content}
                     </div>
+                    {userId == comment.userId &&
                     <div className="comment-actions">
                       <button 
                         className="edit-comment-button"
-                        onClick={() => handleEditClick(comment.id, comment.text || comment.content)}
+                        onClick={() => handleEditClick(comment.id, comment.content)}
                       >
                         수정
                       </button>
@@ -211,6 +220,7 @@ export const CommentSection = ({ reviewId }) => {
                         삭제
                       </button>
                     </div>
+}
                   </>
                 )}
               </div>

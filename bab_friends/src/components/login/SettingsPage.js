@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = "http://3.38.71.28:8080/api";
+
 
 export const SettingsPage = () => {
   const [username, setUsername] = useState("");
